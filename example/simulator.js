@@ -1,6 +1,7 @@
 var ZwackBLE = require("../lib/zwack-ble-sensor");
 const readline = require("readline");
 const parseArgs = require("minimist");
+const CyclingPowerMeasurementCharacteristic = require("../lib/cps/cycling-power-measurement-characteristic");
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -31,8 +32,9 @@ if (args.variable === undefined) {
 }
 
 // default parameters
+let hr = 130;
 let cadence = 90;
-let power = 100;
+let power = 130;
 let powerMeterSpeed = 18; // kmh
 let powerMeterSpeedUnit = 2048; // Last Event time expressed in Unit of 1/2048 second
 let runningCadence = 180;
@@ -46,9 +48,10 @@ if (!metric) {
 
 let randomness = 5;
 let cadRandomness = 5;
+let hrRandomness = 5;
 let sensorName = "Zwack";
 
-let incr = 10;
+let incr = 5;
 let runningIncr = 0.5;
 let runningInclineIncr = 0.5;
 let runningIncline = 0;
@@ -56,7 +59,9 @@ let stroke_count = 0;
 let wheel_count = 0;
 let wheel_circumference = 2096; // milimeter
 let notificationInterval = 1000;
+let hrUpdateInterval = 5000;
 let watts = power;
+let hrNoise = 0;
 
 let prevCadTime = 0;
 let prevCadInt = 0;
@@ -66,8 +71,8 @@ process.stdin.setRawMode(true);
 
 const zwackBLE = new ZwackBLE({
   name: sensorName,
-  modelNumber: "ZW-101",
-  serialNumber: "1",
+  modelNumber: "ZW-38BC",
+  serialNumber: "06-C8673287492DE",
 });
 
 process.stdin.on("keypress", (str, key) => {
@@ -105,6 +110,15 @@ process.stdin.on("keypress", (str, key) => {
           power = 2500;
         }
         break;
+      case "h":
+        hr += factor;
+        if (hr < 80) {
+          hr = 80;
+        }
+        if (hr > 190) {
+          hr = 190;
+        }
+        break;
       case "r":
         randomness += factor;
         if (randomness < 0) {
@@ -115,6 +129,12 @@ process.stdin.on("keypress", (str, key) => {
         cadRandomness += factor;
         if (cadRandomness < 0) {
           cadRandomness = 0;
+        }
+        break;
+      case "n":
+        hrRandomness += factor;
+        if (hrRandomness < 0) {
+          hrRandomness = 0;
         }
         break;
       case "e":
@@ -149,6 +169,34 @@ process.stdin.on("keypress", (str, key) => {
           incr = 1;
         }
         break;
+      case "0":
+        power = 0;
+        cadence = 0;
+        runningCadence = 0;
+        runningSpeed = 0;
+        hr = 55;
+        break;
+      case "1":
+        power = 130;
+        cadence = 80;
+        runningCadence = 170;
+        runningSpeed = 10;
+        hr = 130;
+        break;
+      case "2":
+        power = 190;
+        cadence = 90;
+        hr = 130;
+        runningCadence = 170;
+        runningSpeed = 11;
+        break;
+      case "3":
+        power = 250;
+        cadence = 98;
+        runningCadence = 180;
+        runningSpeed = 12;
+        hr = 160;
+        break;
       default:
         listKeys();
     }
@@ -179,7 +227,7 @@ process.stdin.on("keypress", (str, key) => {
 
 // Simulate Cycling Power - Broadcasting Power ONLY
 let notifyPowerCSP = function () {
-  watts = Math.floor(Math.random() * randomness + power);
+  watts = power > 0 ? Math.floor(Math.random() * randomness + power) : 0;
 
   try {
     zwackBLE.notifyCSP({ watts: watts });
@@ -192,11 +240,19 @@ let notifyPowerCSP = function () {
 
 // Simulate FTMS Smart Trainer - Broadcasting Power and Cadence
 let notifyBikeFTMS = function () {
-  watts = Math.floor(Math.random() * randomness + power);
-  rpm = Math.floor(Math.random() * cadRandomness + cadence);
+  watts = power > 0 ? Math.floor(Math.random() * randomness + power) : 0;
+  rpm =
+    cadence > 0 && power > 0
+      ? Math.floor(Math.random() * cadRandomness + cadence)
+      : 0;
+  const heartRate = hr > 89 ? hr + hrNoise : undefined;
 
   try {
-    zwackBLE.notifyFTMS({ watts: watts, cadence: cadence });
+    zwackBLE.notifyFTMS({
+      watts: watts,
+      cadence: cadence,
+      heartRate: heartRate,
+    });
   } catch (e) {
     console.error(e);
   }
@@ -206,16 +262,28 @@ let notifyBikeFTMS = function () {
 
 let notifyTreadmillFTMS = function () {
   prepareRunningData();
+  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+
   try {
     zwackBLE.notifyFTMS({
       speed: notifyRunningSpeed,
       inclination: notifyRunningIncline,
+      heartRate: heartRate,
     });
   } catch (e) {
     console.error(e);
   }
 
   setTimeout(notifyTreadmillFTMS, notificationInterval);
+};
+
+// Separate function for updating heart rate with a different interval
+let updateHeartRate = function () {
+  // Update heart rate noise
+  hrNoise = Math.floor(Math.random() * hrRandomness) - hrRandomness / 2; // Adjust the range as needed
+
+  // Set the interval for heart rate updates
+  setTimeout(updateHeartRate, hrUpdateInterval);
 };
 
 // Simulate Cycling Power - Broadcasting Power and Cadence
@@ -249,7 +317,7 @@ var notifyCPCS = function () {
     (wheel_circumference * powerMeterSpeedUnit * 60 * 60) /
       (1000 * 1000 * powerMeterSpeed)
   );
-  watts = Math.floor(Math.random() * randomness + power);
+  watts = power > 0 ? Math.floor(Math.random() * randomness + power) : 0;
 
   //   var cad_int = Math.round(60 * 1024/(Math.random() * randomness + cadence));
   var cad_int = Math.round((60 * 1024) / cadence);
@@ -309,9 +377,10 @@ let prepareRunningData = function () {
   //the base values runningSpeed and runningCadence get randomised and converted
   //this is done here as the same values are shared via FTMS-treadmill and RSC if both enabled
   this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
-  this.notifyRunningCadence = Math.floor(
-    (Math.random() - 0.5) * 3 + runningCadence
-  );
+  this.notifyRunningCadence =
+    runningCadence > 0
+      ? Math.floor((Math.random() - 0.5) * 3 + runningCadence)
+      : 0;
   //no randomisation
   this.notifyRunningIncline = runningIncline;
 };
@@ -333,10 +402,14 @@ let notifyRSC = function () {
 
 function listParams() {
   console.log(`\nBLE Sensor parameters:`);
+  console.log(`\nHeart Rate:`);
+  console.log(`  HR: ${hr} bpm`);
+  console.log(`  HR Randomness: 0 - ${hrRandomness} bpm`);
+
   console.log(`\nCycling:`);
+  console.log(`    Power: ${power} W`);
   console.log(`    Cadence: ${cadence} RPM`);
-  console.log(`      Power: ${power} W`);
-  console.log(`      Speed: ${powerMeterSpeed} km/h`);
+  console.log(`    Speed: ${powerMeterSpeed} km/h`);
 
   console.log("\nRunning:");
   if (!metric) {
@@ -355,9 +428,10 @@ function listParams() {
   console.log(`    Cadence: ${Math.floor(runningCadence)} steps/min`);
   console.log(`    Incline: ${runningIncline} degrees`);
 
+  console.log("\nEtc:");
   console.log(`\nPower/Speed Randomness: ${randomness}`);
-  console.log(`\nCadence Randomness: ${randomness}`);
-  console.log(`Increment: ${incr}`);
+  console.log(`      Cadence Randomness: ${cadRandomness}`);
+  console.log(`               Increment: ${incr}`);
   console.log("\n");
 }
 
@@ -365,12 +439,26 @@ function listKeys() {
   console.log(`\nList of Available Keys`);
   console.log("c/C - Decrease/Increase cycling cadence");
   console.log("p/P - Decrease/Increase cycling power");
+  console.log("r/R - Decrease/Increase cycling power/speed randomness");
+  console.log("t/T - Decrease/Increase cycling cadence randomness");
   console.log("s/S - Decrease/Increase running speed");
   console.log("d/D - Decrease/Increase running cadence");
   console.log("e/E - Decrease/Increase running incline (0-12)");
-  console.log("\nr/R - Decrease/Increase power/speed randomness");
-  console.log("\nt/T - Decrease/Increase cadence randomness");
-  console.log("i/I - Decrease/Increase parameter increment");
+  console.log("h/H - Decrease/Increase heart rate");
+  console.log("n/N - Decrease/Increase heart rate randomness");
+  console.log("0 - Quick stop: 0 cadence, power, speed; 55 heart rate");
+  console.log(
+    "1 - Average: Cycling power 130, Cadence 80; Running speed 10, Cadence 170; Heart rate 130"
+  );
+  console.log(
+    "2 - Tempo: Cycling power 190, Cadence 90; Running speed 11, Cadence 170; Heart rate 130"
+  );
+  console.log(
+    "3 - Threshold: Cycling power 250, Cadence 98; Running speed 12, Cadence 180; Heart rate 160"
+  );
+  console.log(
+    "i/I - Decrease/Increase parameter increment (affects cycling cadence, power, cadence, randomness)"
+  );
   console.log("x/q - Exit");
   console.log();
 }
@@ -434,6 +522,9 @@ if (containsFTMSBike) {
 }
 if (containsFTMSTreadmill || containsRSC) {
   prepareRunningData();
+}
+if (containsFTMSBike || containsFTMSTreadmill) {
+  updateHeartRate();
 }
 if (containsFTMSTreadmill) {
   console.log(
