@@ -39,6 +39,7 @@ var sensorName = "Zwack";
 
 var incr = 10;
 var runningIncr = 0.5;
+var runningInclineIncr = 0.5;
 var stroke_count = 0;
 var wheel_count = 0;
 var wheel_circumference = 2096; // milimeter
@@ -66,9 +67,11 @@ process.stdin.on("keypress", (str, key) => {
     if (key.shift) {
       factor = incr;
       runFactor = runningIncr;
+      runInclineFactor = runningInclineIncr;
     } else {
       factor = -incr;
       runFactor = -runningIncr;
+      runInclineFactor = -runningInclineIncr;
     }
 
     switch (key.name) {
@@ -96,6 +99,16 @@ process.stdin.on("keypress", (str, key) => {
           randomness = 0;
         }
         break;
+      case "e":
+        runningIncline += runInclineFactor;
+        if(runningIncline > 12)
+        {
+          runningIncline = 12;
+        }
+        if(runningIncline < 0)
+        {
+          runningIncline = 0;
+        }
       case "s":
         runningSpeed += runFactor;
         if (runningSpeed < 0) {
@@ -161,7 +174,7 @@ var notifyPowerCSP = function () {
 };
 
 // Simulate FTMS Smart Trainer - Broadcasting Power and Cadence
-var notifyPowerFTMS = function () {
+var notifyBikeFTMS = function () {
   watts = Math.floor(Math.random() * randomness + power);
   cadence = Math.floor(Math.random() + cadence);
 
@@ -171,17 +184,17 @@ var notifyPowerFTMS = function () {
     console.error(e);
   }
 
-  setTimeout(notifyPowerFTMS, notificationInterval);
+  setTimeout(notifyBikeFTMS, notificationInterval);
 };
 
-var notifySpeedFTMS = function () {
+var notifyTreadmillFTMS = function () {
   try {
-    zwackBLE.notifyFTMS({ speed: notifyRunningSpeed });
+    zwackBLE.notifyFTMS({ speed: notifyRunningSpeed, incline: notifyRunningIncline });
   } catch (e) {
     console.error(e);
   }
 
-  setTimeout(notifySpeedFTMS, notificationInterval);
+  setTimeout(notifyTreadmillFTMS, notificationInterval);
 };
 
 
@@ -276,6 +289,8 @@ var prepareRunningData = function () {
   //this is done here as the same values are shared via FTMS-treadmill and RSC if both enabled
   this.notifyRunningSpeed = toMs(Math.random() + runningSpeed);
   this.notifyRunningCadence = Math.floor(Math.random() * 2 + runningCadence);
+  //no randomisation
+  this.notifyRunningIncline = runningIncline;
 };
 
 // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
@@ -305,6 +320,7 @@ function listParams() {
     `    Speed: ${runningSpeed} m/h, Pace: ${speedToPace(runningSpeed)} min/mi`
   );
   console.log(`    Cadence: ${Math.floor(runningCadence)} steps/min`);
+  console.log(`    Incline: ${runningIncline} degrees`);
 
   console.log(`\nRandomness: ${randomness}`);
   console.log(`Increment: ${incr}`);
@@ -318,6 +334,7 @@ function listKeys() {
 
   console.log("s/S - Decrease/Increase running speed");
   console.log("d/D - Decrease/Increase running cadence");
+  console.log("e/E - Decrease/Increase running incline (0-12)");
 
   console.log("\nr/R - Decrease/Increase parameter variability");
   console.log("i/I - Decrease/Increase parameter increment");
@@ -364,13 +381,13 @@ if (containsCSP && containsPWR && containsCAD && containsSPD) {
   notifyCPCS(); // Simulate Cycling Power Service - Broadcasting Power and Cadence and Speed
 }
 if (containsFTMSBike) {
-  notifyPowerFTMS(); // Simulate FTMS Bike Smart Trainer - Broadcasting Power and Cadence
+  notifyBikeFTMS(); // Simulate FTMS Bike Smart Trainer - Broadcasting Power and Cadence
 }
 if (containsFTMSTreadmill || containsRSC) {
   prepareRunningData();
 }
 if (containsFTMSTreadmill) {
-  notifySpeedFTMS(); // Simulate FTMS Treadmill - Broadcasting Speed
+  notifyTreadmillFTMS(); // Simulate FTMS Treadmill - Broadcasting Speed, incline
 }
 if (containsRSC) {
   notifyRSC(); // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
