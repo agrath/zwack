@@ -5,6 +5,7 @@ Simulate/Implement a Bluetooth Low Energy sensor that can send:
   * Cycling Power and Cadence (CSP Bluetooth profile)
   * Running Speed and Cadence (RSC Bluetooth profile)
   * Cycling Power and Cadence (FTMS Bluetooth profile - partial support)
+  * Running Speed (FTMS Bluetooth profile - partial support)
 
 Zwack has many possible uses, here are some examples:
 
@@ -57,7 +58,7 @@ rsc Running Speed: 4.4703888888888885 +0ms
 
 Start the simulator by executing:
 
-    npm run simulator -- --variable=ftms --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed
+    npm run simulator -- --variable=ftms-bike --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed
 
 On a different machine start your fitness app, bike computer or indoor virtual bike simulation software, like Zwift, and pair up the Zwack BLE sensor. The sensor name should be `Zwack`, it may have some numbers added to the name or you may see the host name of the computer running zwack. It all depends on the operating system you're uing to run Zwack.
 
@@ -85,9 +86,14 @@ Press `x` or `q` to exit Zwack.
 
 # Command Line Arguments
 
-    npm run simulator -- --variable=ftms --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed
+  **Bike**
+    npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed
+  **Treadmill**
+    npm run simulator -- --variable=ftms-treadmill --variable=rsc
+  
 
-  * ftms - enable broadcasting as FTMS service
+  * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
+  * ftms-treadmill - enable broadcasting as FTMS service with the org.bluetooth.characteristic.treadmill_data uuid 2ACD
   * rsc  - enable broadcasting as RSC service
   * csp  - enable broadcasting as CSP service
   * power - enable broadcasting CSP with Power only data
