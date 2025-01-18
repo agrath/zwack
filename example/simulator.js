@@ -1,18 +1,17 @@
 var ZwackBLE = require("../lib/zwack-ble-sensor");
 const readline = require("readline");
 const parseArgs = require("minimist");
-const { brotliCompress } = require("zlib");
 
 const args = parseArgs(process.argv.slice(2));
 
-var containsFTMSBike = false;
-var containsFTMSTreadmill = false;
-var containsRSC = false;
-var containsCSP = false;
-var containsSPD = false;
-var containsPWR = false;
-var containsCAD = false;
-var metric = false;
+let containsFTMSBike = false;
+let containsFTMSTreadmill = false;
+let containsRSC = false;
+let containsCSP = false;
+let containsSPD = false;
+let containsPWR = false;
+let containsCAD = false;
+let metric = false;
 
 if (args.variable === undefined) {
   console.error(
@@ -27,16 +26,17 @@ if (args.variable === undefined) {
   containsSPD = args.variable.includes("speed");
   containsPWR = args.variable.includes("power");
   containsCAD = args.variable.includes("cadence");
+
   metric = args.variable.includes("metric");
 }
 
 // default parameters
-var cadence = 90;
-var power = 100;
-var powerMeterSpeed = 18; // kmh
-var powerMeterSpeedUnit = 2048; // Last Event time expressed in Unit of 1/2048 second
-var runningCadence = 180;
-var runningSpeed = 0;
+let cadence = 90;
+let power = 100;
+let powerMeterSpeed = 18; // kmh
+let powerMeterSpeedUnit = 2048; // Last Event time expressed in Unit of 1/2048 second
+let runningCadence = 180;
+let runningSpeed = 0;
 //According to Strava, the average running pace for a logged run is 9:53 per mile. This works out to an average running speed of just over 6 miles per hour.
 if (!metric) {
   runningSpeed = 6; // 6 miles/hour or 9:53/mile
@@ -44,26 +44,27 @@ if (!metric) {
   runningSpeed = 10; // 10 km/hour or 6:00/km
 }
 
-var randomness = 5;
-var sensorName = "Zwack";
+let randomness = 5;
+let cadRandomness = 5;
+let sensorName = "Zwack";
 
-var incr = 10;
-var runningIncr = 0.5;
-var runningInclineIncr = 0.5;
-var runningIncline = 0;
-var stroke_count = 0;
-var wheel_count = 0;
-var wheel_circumference = 2096; // milimeter
-var notificationInterval = 1000;
-var watts = power;
+let incr = 10;
+let runningIncr = 0.5;
+let runningInclineIncr = 0.5;
+let runningIncline = 0;
+let stroke_count = 0;
+let wheel_count = 0;
+let wheel_circumference = 2096; // milimeter
+let notificationInterval = 1000;
+let watts = power;
 
-var prevCadTime = 0;
-var prevCadInt = 0;
+let prevCadTime = 0;
+let prevCadInt = 0;
 
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
 
-var zwackBLE = new ZwackBLE({
+const zwackBLE = new ZwackBLE({
   name: sensorName,
   modelNumber: "ZW-101",
   serialNumber: "1",
@@ -110,6 +111,12 @@ process.stdin.on("keypress", (str, key) => {
           randomness = 0;
         }
         break;
+      case "t":
+        cadRandomness += factor;
+        if (cadRandomness < 0) {
+          cadRandomness = 0;
+        }
+        break;
       case "e":
         runningIncline += runInclineFactor;
         if (runningIncline > 12) {
@@ -150,7 +157,7 @@ process.stdin.on("keypress", (str, key) => {
 });
 
 // Simulate Cycling Power - Broadcasting Power & Cadence
-// var notifyPowerCPC = function() {
+// let notifyPowerCPC = function() {
 //   watts = Math.floor(Math.random() * randomness + power);
 //
 //   stroke_count += 1;
@@ -171,7 +178,7 @@ process.stdin.on("keypress", (str, key) => {
 // };
 
 // Simulate Cycling Power - Broadcasting Power ONLY
-var notifyPowerCSP = function () {
+let notifyPowerCSP = function () {
   watts = Math.floor(Math.random() * randomness + power);
 
   try {
@@ -184,9 +191,9 @@ var notifyPowerCSP = function () {
 };
 
 // Simulate FTMS Smart Trainer - Broadcasting Power and Cadence
-var notifyBikeFTMS = function () {
+let notifyBikeFTMS = function () {
   watts = Math.floor(Math.random() * randomness + power);
-  cadence = Math.floor(Math.random() + cadence);
+  rpm = Math.floor(Math.random() * cadRandomness + cadence);
 
   try {
     zwackBLE.notifyFTMS({ watts: watts, cadence: cadence });
@@ -197,7 +204,7 @@ var notifyBikeFTMS = function () {
   setTimeout(notifyBikeFTMS, notificationInterval);
 };
 
-var notifyTreadmillFTMS = function () {
+let notifyTreadmillFTMS = function () {
   prepareRunningData();
   try {
     zwackBLE.notifyFTMS({
@@ -212,7 +219,7 @@ var notifyTreadmillFTMS = function () {
 };
 
 // Simulate Cycling Power - Broadcasting Power and Cadence
-var notifyCadenceCSP = function () {
+let notifyCadenceCSP = function () {
   stroke_count += 1;
   if (cadence <= 0) {
     cadence = 0;
@@ -297,7 +304,8 @@ var notifyCPCS = function () {
   setTimeout(notifyCPCS, notificationInterval);
   //   setTimeout(notifyCPCS, spd_int);
 };
-var prepareRunningData = function () {
+
+let prepareRunningData = function () {
   //the base values runningSpeed and runningCadence get randomised and converted
   //this is done here as the same values are shared via FTMS-treadmill and RSC if both enabled
   this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
@@ -309,7 +317,7 @@ var prepareRunningData = function () {
 };
 
 // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
-var notifyRSC = function () {
+let notifyRSC = function () {
   prepareRunningData();
   try {
     zwackBLE.notifyRSC({
@@ -347,7 +355,8 @@ function listParams() {
   console.log(`    Cadence: ${Math.floor(runningCadence)} steps/min`);
   console.log(`    Incline: ${runningIncline} degrees`);
 
-  console.log(`\nRandomness: ${randomness}`);
+  console.log(`\nPower/Speed Randomness: ${randomness}`);
+  console.log(`\nCadence Randomness: ${randomness}`);
   console.log(`Increment: ${incr}`);
   console.log("\n");
 }
@@ -356,12 +365,11 @@ function listKeys() {
   console.log(`\nList of Available Keys`);
   console.log("c/C - Decrease/Increase cycling cadence");
   console.log("p/P - Decrease/Increase cycling power");
-
   console.log("s/S - Decrease/Increase running speed");
   console.log("d/D - Decrease/Increase running cadence");
   console.log("e/E - Decrease/Increase running incline (0-12)");
-
-  console.log("\nr/R - Decrease/Increase parameter variability");
+  console.log("\nr/R - Decrease/Increase power/speed randomness");
+  console.log("\nt/T - Decrease/Increase cadence randomness");
   console.log("i/I - Decrease/Increase parameter increment");
   console.log("x/q - Exit");
   console.log();
