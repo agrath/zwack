@@ -11,6 +11,7 @@ var containsCSP = false;
 var containsSPD = false;
 var containsPWR = false;
 var containsCAD = false;
+var metric = false;
 
 if (args.variable === undefined) {
   console.error(
@@ -25,6 +26,7 @@ if (args.variable === undefined) {
   containsSPD = args.variable.includes("speed");
   containsPWR = args.variable.includes("power");
   containsCAD = args.variable.includes("cadence");
+  metric = args.variable.includes("metric")
 }
 
 // default parameters
@@ -33,7 +35,16 @@ var power = 100;
 var powerMeterSpeed = 18; // kmh
 var powerMeterSpeedUnit = 2048; // Last Event time expressed in Unit of 1/2048 second
 var runningCadence = 180;
-var runningSpeed = 10; // 6:00 minute mile
+var runningSpeed = 0;
+//According to Strava, the average running pace for a logged run is 9:53 per mile. This works out to an average running speed of just over 6 miles per hour.
+if(!metric){
+  runningSpeed = 6; // 6 miles/hour or 9:53/mile
+}else{
+  runningSpeed = 10; // 10 km/hour or 6:00/km
+}
+
+
+
 var randomness = 5;
 var sensorName = "Zwack";
 
@@ -287,7 +298,7 @@ var notifyCPCS = function () {
 var prepareRunningData = function () {
   //the base values runningSpeed and runningCadence get randomised and converted
   //this is done here as the same values are shared via FTMS-treadmill and RSC if both enabled
-  this.notifyRunningSpeed = toMs(Math.random() + runningSpeed);
+  this.notifyRunningSpeed = toMetersPerSecond(Math.random() + runningSpeed);
   this.notifyRunningCadence = Math.floor(Math.random() * 2 + runningCadence);
   //no randomisation
   this.notifyRunningIncline = runningIncline;
@@ -315,10 +326,11 @@ function listParams() {
   console.log(`      Speed: ${powerMeterSpeed} km/h`);
 
   console.log("\nRunning:");
-
-  console.log(
-    `    Speed: ${runningSpeed} m/h, Pace: ${speedToPace(runningSpeed)} min/mi`
-  );
+  if (!metric) {
+    console.log(`    Speed: ${runningSpeed} m/h, Pace: ${speedToPace(runningSpeed)} min/mi`);
+  } else {
+    console.log(`    Speed: ${runningSpeed} km/h, Pace: ${speedToPace(runningSpeed)} min/km`);
+  }
   console.log(`    Cadence: ${Math.floor(runningCadence)} steps/min`);
   console.log(`    Incline: ${runningIncline} degrees`);
 
@@ -356,8 +368,8 @@ function speedToPace(speed) {
   );
 }
 
-function toMs(speed) {
-  return (speed * 1.60934) / 3.6;
+function toMetersPerSecond(speed) {
+  return (speed * (metric ? 1 : 1.60934)) / 3.6;
 }
 
 function kmhToMs(speed) {
@@ -366,7 +378,7 @@ function kmhToMs(speed) {
 
 // Main
 console.log(`[ZWack] Faking test data for sensor: ${sensorName}`);
-console.log(`[ZWack]  Advertising these services: ${args.variable}`);
+console.log(`[ZWack] Advertising these services: ${args.variable}`);
 
 listKeys();
 listParams();

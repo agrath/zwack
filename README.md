@@ -89,7 +89,7 @@ Press `x` or `q` to exit Zwack.
   **Bike**
     npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed
   **Treadmill**
-    npm run simulator -- --variable=ftms-treadmill --variable=rsc
+    npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric
   
 
   * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
@@ -99,6 +99,7 @@ Press `x` or `q` to exit Zwack.
   * power - enable broadcasting CSP with Power only data
   * cadence - enable broadcasting CSP with Cadence data (to be combined with `power`)
   * speed - enable broadcasting CSP with Speed data (to be combined with `power` and `cadence`)
+  * metric - sets running speed to metric rather than imerial (km/hr instead of miles/hr)
     
 # Requirements
 
