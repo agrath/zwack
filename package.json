@@ -2,6 +2,15 @@
   "author": {
     "name": "Gareth Evans"
   },
+  "maintainers": [
+    "agrath"
+  ],
+  "contributors": [
+    "CicloZone",
+    "johnnybui",
+    "agrath",
+    "sirfergy"
+  ],
   "bugs": {
     "url": "https://github.com/agrath/zwack/issues"
   },
