@@ -200,6 +200,7 @@ var notifyBikeFTMS = function () {
 };
 
 var notifyTreadmillFTMS = function () {
+  prepareRunningData();
   try {
     zwackBLE.notifyFTMS({ speed: notifyRunningSpeed, inclination: notifyRunningIncline });
   } catch (e) {
@@ -299,14 +300,15 @@ var notifyCPCS = function () {
 var prepareRunningData = function () {
   //the base values runningSpeed and runningCadence get randomised and converted
   //this is done here as the same values are shared via FTMS-treadmill and RSC if both enabled
-  this.notifyRunningSpeed = toMetersPerSecond(Math.random() + runningSpeed);
-  this.notifyRunningCadence = Math.floor(Math.random() * 2 + runningCadence);
+  this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
+  this.notifyRunningCadence = Math.floor(((Math.random() - 0.5) * 3) + runningCadence);
   //no randomisation
   this.notifyRunningIncline = runningIncline;
 };
 
 // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
 var notifyRSC = function () {
+  prepareRunningData();
   try {
     zwackBLE.notifyRSC({
       speed: this.notifyNunningSpeed,
