@@ -87,9 +87,12 @@ Press `x` or `q` to exit Zwack.
 # Command Line Arguments
 
   **Bike**
-    npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed
+
+  `npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed`
+  
   **Treadmill**
-    npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric
+  
+  `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric`
   
 
   * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
