@@ -37,13 +37,11 @@ var powerMeterSpeedUnit = 2048; // Last Event time expressed in Unit of 1/2048 s
 var runningCadence = 180;
 var runningSpeed = 0;
 //According to Strava, the average running pace for a logged run is 9:53 per mile. This works out to an average running speed of just over 6 miles per hour.
-if(!metric){
+if (!metric) {
   runningSpeed = 6; // 6 miles/hour or 9:53/mile
-}else{
+} else {
   runningSpeed = 10; // 10 km/hour or 6:00/km
 }
-
-
 
 var randomness = 5;
 var sensorName = "Zwack";
@@ -51,6 +49,7 @@ var sensorName = "Zwack";
 var incr = 10;
 var runningIncr = 0.5;
 var runningInclineIncr = 0.5;
+var runningIncline = 0;
 var stroke_count = 0;
 var wheel_count = 0;
 var wheel_circumference = 2096; // milimeter
@@ -112,11 +111,11 @@ process.stdin.on("keypress", (str, key) => {
         break;
       case "e":
         runningIncline += runInclineFactor;
-        if(runningIncline > 12)
+        if (runningIncline > 12)
         {
           runningIncline = 12;
         }
-        if(runningIncline < 0)
+        if (runningIncline < 0)
         {
           runningIncline = 0;
         }
