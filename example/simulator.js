@@ -1,6 +1,7 @@
 var ZwackBLE = require("../lib/zwack-ble-sensor");
 const readline = require("readline");
 const parseArgs = require("minimist");
+const { brotliCompress } = require("zlib");
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -119,6 +120,7 @@ process.stdin.on("keypress", (str, key) => {
         {
           runningIncline = 0;
         }
+        break;
       case "s":
         runningSpeed += runFactor;
         if (runningSpeed < 0) {
