@@ -27,7 +27,7 @@ if (args.variable === undefined) {
   containsSPD = args.variable.includes("speed");
   containsPWR = args.variable.includes("power");
   containsCAD = args.variable.includes("cadence");
-  metric = args.variable.includes("metric")
+  metric = args.variable.includes("metric");
 }
 
 // default parameters
@@ -112,12 +112,10 @@ process.stdin.on("keypress", (str, key) => {
         break;
       case "e":
         runningIncline += runInclineFactor;
-        if (runningIncline > 12)
-        {
+        if (runningIncline > 12) {
           runningIncline = 12;
         }
-        if (runningIncline < 0)
-        {
+        if (runningIncline < 0) {
           runningIncline = 0;
         }
         break;
@@ -202,14 +200,16 @@ var notifyBikeFTMS = function () {
 var notifyTreadmillFTMS = function () {
   prepareRunningData();
   try {
-    zwackBLE.notifyFTMS({ speed: notifyRunningSpeed, inclination: notifyRunningIncline });
+    zwackBLE.notifyFTMS({
+      speed: notifyRunningSpeed,
+      inclination: notifyRunningIncline,
+    });
   } catch (e) {
     console.error(e);
   }
 
   setTimeout(notifyTreadmillFTMS, notificationInterval);
 };
-
 
 // Simulate Cycling Power - Broadcasting Power and Cadence
 var notifyCadenceCSP = function () {
@@ -301,7 +301,9 @@ var prepareRunningData = function () {
   //the base values runningSpeed and runningCadence get randomised and converted
   //this is done here as the same values are shared via FTMS-treadmill and RSC if both enabled
   this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
-  this.notifyRunningCadence = Math.floor(((Math.random() - 0.5) * 3) + runningCadence);
+  this.notifyRunningCadence = Math.floor(
+    (Math.random() - 0.5) * 3 + runningCadence
+  );
   //no randomisation
   this.notifyRunningIncline = runningIncline;
 };
@@ -330,9 +332,17 @@ function listParams() {
 
   console.log("\nRunning:");
   if (!metric) {
-    console.log(`    Speed: ${runningSpeed} m/h, Pace: ${speedToPace(runningSpeed)} min/mi`);
+    console.log(
+      `    Speed: ${runningSpeed} m/h, Pace: ${speedToPace(
+        runningSpeed
+      )} min/mi`
+    );
   } else {
-    console.log(`    Speed: ${runningSpeed} km/h, Pace: ${speedToPace(runningSpeed)} min/km`);
+    console.log(
+      `    Speed: ${runningSpeed} km/h, Pace: ${speedToPace(
+        runningSpeed
+      )} min/km`
+    );
   }
   console.log(`    Cadence: ${Math.floor(runningCadence)} steps/min`);
   console.log(`    Incline: ${runningIncline} degrees`);
