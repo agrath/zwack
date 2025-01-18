@@ -200,7 +200,7 @@ var notifyBikeFTMS = function () {
 
 var notifyTreadmillFTMS = function () {
   try {
-    zwackBLE.notifyFTMS({ speed: notifyRunningSpeed, incline: notifyRunningIncline });
+    zwackBLE.notifyFTMS({ speed: notifyRunningSpeed, inclination: notifyRunningIncline });
   } catch (e) {
     console.error(e);
   }
