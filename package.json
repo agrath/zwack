@@ -1,44 +1,30 @@
 {
-  "_from": "zwack",
-  "_id": "zwack@0.1.6",
-  "_inBundle": false,
-  "_integrity": "sha512-BW/Dc95WE60BOkctXpciV0+NqcEx3zGT1IIHHuzlp3iLynq40x97b3WI5qFiBIeN8sb5yLAvrIszImIVbhigEg==",
-  "_location": "/zwack",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "zwack",
-    "name": "zwack",
-    "escapedName": "zwack",
-    "rawSpec": "",
-    "saveSpec": null,
-    "fetchSpec": "latest"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/zwack/-/zwack-0.1.6.tgz",
-  "_shasum": "e7fa487844e5534269e4b0b1df6e1e9e12f925ff",
-  "_spec": "zwack",
-  "_where": "/Users/mjunkmyjunk",
   "author": {
-    "name": "Pedro Paixao"
+    "name": "Gareth Evans"
   },
+  "maintainers": [
+    "agrath"
+  ],
+  "contributors": [
+    "CicloZone",
+    "johnnybui",
+    "agrath",
+    "sirfergy"
+  ],
   "bugs": {
-    "url": "https://github.com/paixaop/zwack/issues"
+    "url": "https://github.com/agrath/zwack/issues"
   },
   "bundleDependencies": [],
   "dependencies": {
+    "@abandonware/bleno": "^0.6.1",
+    "debug": "4.4.0",
     "@abandonware/bluetooth-hci-socket": "^0.5.3-12",
-    "bleno": "npm:@abandonware/bleno@^0.5.1-4",
     "minimist": "^1.2.8",
     "readline": "^1.3.0"
   },
   "deprecated": false,
   "description": "Simulate an indoor bicycle trainer with BLE (Bluetooth Low Energy)",
-  "homepage": "https://github.com/paixaop/zwack",
+  "homepage": "https://github.com/agrath/zwack",
   "keywords": [
     "bluetooth",
     "ble",
@@ -58,7 +44,7 @@
   "name": "zwack",
   "repository": {
     "type": "https",
-    "url": "git+https://github.com/paixaop/zwack.git"
+    "url": "git+https://github.com/agrath/zwack.git"
   },
   "scripts": {
     "major": "npm version major",
@@ -67,5 +53,5 @@
     "simulator": "node ./example/simulator.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.1.6"
+  "version": "0.2.1"
 }
