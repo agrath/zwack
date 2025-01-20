@@ -405,23 +405,29 @@ listKeys();
 listParams();
 
 if (containsCSP && containsPWR && !containsCAD && !containsSPD) {
+  console.log('[Zwack] Starting notifications for CSP - power only');
   notifyPowerCSP(); // Simulate Cycling Power Service - Broadcasting Power ONLY
 }
 if (containsCSP && containsPWR && containsCAD && !containsSPD) {
+  console.log('[Zwack] Starting notifications for CSP - power+cadence only');
   notifyCadenceCSP(); // Simulate Cycling Power Service  - Broadcasting Power and Cadence
 }
 if (containsCSP && containsPWR && containsCAD && containsSPD) {
+  console.log('[Zwack] Starting notifications for CSP - power+cadence+speed');
   notifyCPCS(); // Simulate Cycling Power Service - Broadcasting Power and Cadence and Speed
 }
 if (containsFTMSBike) {
-  notifyBikeFTMS(); // Simulate FTMS Bike Smart Trainer - Broadcasting Power and Cadence
+  console.log('[Zwack] Starting notifications for FTMS-Bike - power+speed');
+  notifyBikeFTMS(); // Simulate FTMS Bike Smart Trainer - Broadcasting Power and Speed
 }
 if (containsFTMSTreadmill || containsRSC) {
   prepareRunningData();
 }
 if (containsFTMSTreadmill) {
+  console.log('[Zwack] Starting notifications for FTMS-Treadmill - speed+incline');
   notifyTreadmillFTMS(); // Simulate FTMS Treadmill - Broadcasting Speed, incline
 }
 if (containsRSC) {
+  console.log('[Zwack] Starting notifications for RSC - speed+cadence');
   notifyRSC(); // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
 }
