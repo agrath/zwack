@@ -321,8 +321,8 @@ let notifyRSC = function () {
   prepareRunningData();
   try {
     zwackBLE.notifyRSC({
-      speed: this.notifyNunningSpeed,
-      cadence: this.notifyRunningCadence,
+      speed: notifyRunningSpeed,
+      cadence: notifyRunningCadence,
     });
   } catch (e) {
     console.error(e);
