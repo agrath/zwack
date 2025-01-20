@@ -404,30 +404,44 @@ console.log(`[ZWack] Advertising these services: ${args.variable}`);
 listKeys();
 listParams();
 
+console.log(
+  "[Zwack] Starting notifications: " +
+    JSON.stringify({
+      CSP: containsCSP,
+      PWR: containsPWR,
+      CAD: containsCAD,
+      SPD: containsSPD,
+      FTMSBike: containsFTMSBike,
+      FTMSTreadmill: containsFTMSTreadmill,
+      RSC: containsRSC,
+    })
+);
 if (containsCSP && containsPWR && !containsCAD && !containsSPD) {
-  console.log('[Zwack] Starting notifications for CSP - power only');
+  console.log("[Zwack] Starting notifications for CSP - power only");
   notifyPowerCSP(); // Simulate Cycling Power Service - Broadcasting Power ONLY
 }
 if (containsCSP && containsPWR && containsCAD && !containsSPD) {
-  console.log('[Zwack] Starting notifications for CSP - power+cadence only');
+  console.log("[Zwack] Starting notifications for CSP - power+cadence only");
   notifyCadenceCSP(); // Simulate Cycling Power Service  - Broadcasting Power and Cadence
 }
 if (containsCSP && containsPWR && containsCAD && containsSPD) {
-  console.log('[Zwack] Starting notifications for CSP - power+cadence+speed');
+  console.log("[Zwack] Starting notifications for CSP - power+cadence+speed");
   notifyCPCS(); // Simulate Cycling Power Service - Broadcasting Power and Cadence and Speed
 }
 if (containsFTMSBike) {
-  console.log('[Zwack] Starting notifications for FTMS-Bike - power+speed');
+  console.log("[Zwack] Starting notifications for FTMS-Bike - power+speed");
   notifyBikeFTMS(); // Simulate FTMS Bike Smart Trainer - Broadcasting Power and Speed
 }
 if (containsFTMSTreadmill || containsRSC) {
   prepareRunningData();
 }
 if (containsFTMSTreadmill) {
-  console.log('[Zwack] Starting notifications for FTMS-Treadmill - speed+incline');
+  console.log(
+    "[Zwack] Starting notifications for FTMS-Treadmill - speed+incline"
+  );
   notifyTreadmillFTMS(); // Simulate FTMS Treadmill - Broadcasting Speed, incline
 }
 if (containsRSC) {
-  console.log('[Zwack] Starting notifications for RSC - speed+cadence');
+  console.log("[Zwack] Starting notifications for RSC - speed+cadence");
   notifyRSC(); // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
 }
