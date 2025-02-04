@@ -66,6 +66,14 @@ let hrNoise = 0;
 let prevCadTime = 0;
 let prevCadInt = 0;
 
+let paused = false;
+let pausedCadence = 0;
+let pausedPower = 0;
+let pausedHr = 0;
+let pausedRunningSpeed = 0;
+let pausedPowerMeterSpeed = 0;
+let pausedRunningCadence = 0;
+
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
 
@@ -167,6 +175,31 @@ process.stdin.on("keypress", (str, key) => {
         incr += Math.abs(factor) / factor;
         if (incr < 1) {
           incr = 1;
+        }
+        break;
+      case "a":
+        if (!paused) {
+          paused = true;
+          pausedCadence = cadence;
+          pausedPower = power;
+          pausedHr = hr;
+          pausedRunningSpeed = runningSpeed;
+          pausedPowerMeterSpeed = powerMeterSpeed;
+          pausedRunningCadence = runningCadence;
+          cadence = 0;
+          power = 0;
+          hr = 75;
+          runningSpeed = 0;
+          powerMeterSpeed = 0;
+          runningCadence = 0;
+        } else {
+          paused = false;
+          cadence = pausedCadence;
+          power = pausedPower;
+          hr = pausedHr;
+          runningSpeed = pausedRunningSpeed;
+          powerMeterSpeed = pausedPowerMeterSpeed;
+          runningCadence = pausedRunningCadence;
         }
         break;
       case "0":
@@ -446,6 +479,9 @@ function listKeys() {
   console.log("e/E - Decrease/Increase running incline (0-12)");
   console.log("h/H - Decrease/Increase heart rate");
   console.log("n/N - Decrease/Increase heart rate randomness");
+  console.log(
+    "a/A - Pause/Resume (capture current state - set to 0 or revert)"
+  );
   console.log("0 - Quick stop: 0 cadence, power, speed; 55 heart rate");
   console.log(
     "1 - Average: Cycling power 130, Cadence 80; Running speed 10, Cadence 170; Heart rate 130"
