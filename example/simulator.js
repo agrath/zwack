@@ -12,6 +12,7 @@ let containsCSP = false;
 let containsSPD = false;
 let containsPWR = false;
 let containsCAD = false;
+let containsHR = false;
 let metric = false;
 
 if (args.variable === undefined) {
@@ -27,7 +28,7 @@ if (args.variable === undefined) {
   containsSPD = args.variable.includes("speed");
   containsPWR = args.variable.includes("power");
   containsCAD = args.variable.includes("cadence");
-
+  containsHR = args.variable.inclination("heartrate");
   metric = args.variable.includes("metric");
 }
 
@@ -433,6 +434,19 @@ let notifyRSC = function () {
   setTimeout(notifyRSC, notificationInterval);
 };
 
+let notifyHeartRate = function() { 
+  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+  try {
+    zwackBLE.notifyHeartRate({
+      heart_rate: heartRate
+    });
+  } catch (e) {
+    console.error(e);
+  }
+
+  setTimeout(notifyHeartRate, notificationInterval);
+}
+
 function listParams() {
   console.log(`\nBLE Sensor parameters:`);
   console.log(`\nHeart Rate:`);
@@ -538,6 +552,7 @@ console.log(
       FTMSBike: containsFTMSBike,
       FTMSTreadmill: containsFTMSTreadmill,
       RSC: containsRSC,
+      HeartRate: containsHR,
     })
 );
 if (containsCSP && containsPWR && !containsCAD && !containsSPD) {
@@ -559,7 +574,7 @@ if (containsFTMSBike) {
 if (containsFTMSTreadmill || containsRSC) {
   prepareRunningData();
 }
-if (containsFTMSBike || containsFTMSTreadmill) {
+if (containsFTMSBike || containsFTMSTreadmill || containsHR) {
   updateHeartRate();
 }
 if (containsFTMSTreadmill) {
@@ -571,4 +586,7 @@ if (containsFTMSTreadmill) {
 if (containsRSC) {
   console.log("[Zwack] Starting notifications for RSC - speed+cadence");
   notifyRSC(); // Simulate Running Speed and Cadence - Broadcasting Speed and Cadence
+}
+if (containsHR) {
+  notifyHeartRate();
 }
