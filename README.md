@@ -6,6 +6,7 @@ Simulate/Implement a Bluetooth Low Energy sensor that can send:
   * Running Speed and Cadence (RSC Bluetooth profile)
   * Cycling Power and Cadence (FTMS Bluetooth profile - partial support)
   * Running Speed (FTMS Bluetooth profile - partial support)
+  * Heart rate (HR Bluetooth profile - and static battery)
 
 Zwack has many possible uses, here are some examples:
 
@@ -18,15 +19,25 @@ Zwack has many possible uses, here are some examples:
 
 At this time Zwack runs succesfuly on Mac OSX (Please check Requirements below) and Raspberry PI. Should run on Windows but it hasn't been tested. If it works let me know.
 
+If running on a RPI, I've successfully used a model 4B in 2025. Check the nodeBLE docs regarding stopping the built in services, restarting hci0 and granting permission to node. Commands below copied with no context :)
+
+```
+sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev
+sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
+sudo service bluetooth status
+sudo systemctl status bluetooth
+sudo service bluetooth stop
+sudo systemctl stop bluetooth
+sudo update-rc.d bluetooth remove
+sudo systemctl disable bluetooth
+sudo hciconfig hci0 up
+```
+
+You must run `hciconfig hci0 up` after each reboot or the service will not advertise
+
 # Installation
 
-Install from npm
-
-    npm i zwack
-
-or clone this repo and run 
-
-    npm install
+clone this repo and run `npm install`
 
 You may need to install Xcode on Mac to compile the `bleno` Bluetooth module. 
 
@@ -38,6 +49,7 @@ You can see a lot of debug information if you run the simulator or your app with
   * rsc  - Running Speed and Cadence messages
   * ftms - Fitness Machine Messages
   * ble  - Bluetooth low energy messages
+  * hr - HR messages
 
 Example:
 
@@ -58,7 +70,7 @@ rsc Running Speed: 4.4703888888888885 +0ms
 
 Start the simulator by executing:
 
-    npm run simulator -- --variable=ftms-bike --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed
+    npm run simulator -- --variable=ftms-bike --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed --variable=hr
 
 On a different machine start your fitness app, bike computer or indoor virtual bike simulation software, like Zwift, and pair up the Zwack BLE sensor. The sensor name should be `Zwack`, it may have some numbers added to the name or you may see the host name of the computer running zwack. It all depends on the operating system you're uing to run Zwack.
 
@@ -82,17 +94,19 @@ Pressing `c` on your keyboard will decrease the cadence, conversly pressing `C` 
  
 The variability parameter will introduce some random variability to the cadence and power values, so they don't remain constant all the time. If you lower the variability to `0` the cadence and power values will remain constant.
 
+There are more keybindings reported in the output log
+
 Press `x` or `q` to exit Zwack.
 
 # Command Line Arguments
 
   **Bike**
 
-  `npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed`
+  `npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed --variable=hr`
   
   **Treadmill**
   
-  `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric`
+  `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric --variable=hr`
   
 
   * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
@@ -102,6 +116,7 @@ Press `x` or `q` to exit Zwack.
   * power - enable broadcasting CSP with Power only data
   * cadence - enable broadcasting CSP with Cadence data (to be combined with `power`)
   * speed - enable broadcasting CSP with Speed data (to be combined with `power` and `cadence`)
+  * hr - enable broadcasting HR with HR BPM data (and a battery service at 75%)
   * metric - sets running speed to metric rather than imperial (km/hr instead of miles/hr)
     
 # Requirements
@@ -126,9 +141,13 @@ The current implementation of Cycling Power (with Speed & Cadence) is NOT ideal.
 
 I'm sure there are many bugs but as of now, it works and suits the purpose which is for testing as there are no simulators available for bluetooth (similar in form to simulANT). 
 
-
 ## Credits
 
 Initial prototype based on [ble-cycling-power](https://github.com/olympum/ble-cycling-power) code from olympum.
 
 Codes for FTMS support is taken from the [FortuisANT project ](https://github.com/WouterJD/FortiusANT) and edited to fit usage as a simulator
+
+Original zwack developed by @paixaop
+Upstream changes integrated from @sirfergy, @johnnybui and @ciclozone
+
+@agrath added treadmill data to FTMS, running incline, heartrate service plus upstream merge and tidyup
