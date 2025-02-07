@@ -435,7 +435,7 @@ let notifyRSC = function () {
 };
 
 let notifyHeartRate = function() { 
-  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+  const heartRate = hr > 89 ? Math.floor(hr + hrNoise) : undefined;
   try {
     zwackBLE.notifyHeartRate({
       heart_rate: heartRate
