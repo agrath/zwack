@@ -413,7 +413,7 @@ let prepareRunningData = function () {
   this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
   this.notifyRunningCadence =
     runningCadence > 0
-      ? Math.floor((Math.random() - 0.5) * 3 + runningCadence)
+      ? Math.floor((Math.random() - 0.5) * 3) + runningCadence
       : 0;
   //no randomisation
   this.notifyRunningIncline = runningIncline;
