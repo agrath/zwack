@@ -28,7 +28,7 @@ if (args.variable === undefined) {
   containsSPD = args.variable.includes("speed");
   containsPWR = args.variable.includes("power");
   containsCAD = args.variable.includes("cadence");
-  containsHR = args.variable.inclination("heartrate");
+  containsHR = args.variable.includes("heartrate");
   metric = args.variable.includes("metric");
 }
 
