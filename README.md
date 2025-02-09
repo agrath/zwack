@@ -6,12 +6,14 @@ Simulate/Implement a Bluetooth Low Energy sensor that can send:
   * Running Speed and Cadence (RSC Bluetooth profile)
   * Cycling Power and Cadence (FTMS Bluetooth profile - partial support)
   * Running Speed (FTMS Bluetooth profile - partial support)
+  * Rowing Data (FTMS Bluetooth profile - partial support)
   * Heart rate (HR Bluetooth profile - and static battery)
 
 Zwack has many possible uses, here are some examples:
 
-  * Simulate an indoor bike trainer (turbo) generating cyclist power,cadence & speed data to test bike computers fitness, or virtual indoor bike apps. 
-  * Simulate a runner's speed and pace test bike computers fitness, or virtual indoor bike apps. 
+  * Simulate an indoor bike trainer (turbo) generating cyclist power,cadence & speed data to test virtual indoor bike apps. 
+  * Simulate a runner's speed and pace to test virtual indoor run apps.
+  * Simulate a rower's stroke rate (and computed metrics) to test virtual indoor row apps 
   * Integrate a common treadmill with Zwift, sending data from the treadmill to the Zwift game via bluetooth
   * Simulate an indoor bike trainer (turbo) that is able to receive SetTarget (wattage) commands from test bike fitness apps (eg: BreakAway: Indoor Training) for testing. (This method is currently using the Cycling Power Profile with the addition of Wahoo's extension)
   
@@ -19,7 +21,7 @@ Zwack has many possible uses, here are some examples:
 
 At this time Zwack runs succesfuly on Mac OSX (Please check Requirements below) and Raspberry PI. Should run on Windows but it hasn't been tested. If it works let me know.
 
-If running on a RPI, I've successfully used a model 4B in 2025. Check the nodeBLE docs regarding stopping the built in services, restarting hci0 and granting permission to node. Commands below copied with no context :)
+If running on a RPI, I've (@agrath) successfully used a model 4B in 2025. Check the nodeBLE docs regarding stopping the built in services, restarting hci0 and granting permission to node. Commands below copied with no context :)
 
 ```
 sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev
@@ -108,9 +110,14 @@ Press `x` or `q` to exit Zwack.
   
   `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric --variable=hr`
   
+  **Rower**
+  
+  `npm run simulator -- --variable=ftms-row --variable=hr`
+  
 
   * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
   * ftms-treadmill - enable broadcasting as FTMS service with the org.bluetooth.characteristic.treadmill_data uuid 2ACD
+  * ftms-row - enable broadcasting as FTMS service with the org.bluetooth.characteristic.rower_data uuid 2AD1
   * rsc  - enable broadcasting as RSC service
   * csp  - enable broadcasting as CSP service
   * power - enable broadcasting CSP with Power only data
@@ -150,4 +157,4 @@ Codes for FTMS support is taken from the [FortuisANT project ](https://github.co
 Original zwack developed by @paixaop
 Upstream changes integrated from @sirfergy, @johnnybui and @ciclozone
 
-@agrath added treadmill data to FTMS, running incline, heartrate service plus upstream merge and tidyup
+@agrath added treadmill data to FTMS, running incline, heartrate service plus upstream merge and tidyup, also added supported speed_range, inclination_range and rower support

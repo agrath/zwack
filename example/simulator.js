@@ -1,12 +1,11 @@
 var ZwackBLE = require("../lib/zwack-ble-sensor");
 const readline = require("readline");
 const parseArgs = require("minimist");
-const CyclingPowerMeasurementCharacteristic = require("../lib/cps/cycling-power-measurement-characteristic");
-
 const args = parseArgs(process.argv.slice(2));
 
 let containsFTMSBike = false;
 let containsFTMSTreadmill = false;
+let containsFTMSRow = false;
 let containsRSC = false;
 let containsCSP = false;
 let containsSPD = false;
@@ -23,6 +22,7 @@ if (args.variable === undefined) {
 } else {
   containsFTMSBike = args.variable.includes("ftms-bike");
   containsFTMSTreadmill = args.variable.includes("ftms-treadmill");
+  containsFTMSRow = args.variable.includes("ftms-row");
   containsRSC = args.variable.includes("rsc");
   containsCSP = args.variable.includes("csp");
   containsSPD = args.variable.includes("speed");
@@ -46,7 +46,7 @@ if (!metric) {
 } else {
   runningSpeed = 10; // 10 km/hour or 6:00/km
 }
-
+let rowStrokeRate = 24; //average is 24-30
 let randomness = 5;
 let cadRandomness = 5;
 let hrRandomness = 5;
@@ -74,6 +74,7 @@ let pausedHr = 0;
 let pausedRunningSpeed = 0;
 let pausedPowerMeterSpeed = 0;
 let pausedRunningCadence = 0;
+let pausedRowStrokeRate = 0;
 
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
@@ -94,10 +95,12 @@ process.stdin.on("keypress", (str, key) => {
       factor = incr;
       runFactor = runningIncr;
       runInclineFactor = runningInclineIncr;
+      rowFactor = incr;
     } else {
       factor = -incr;
       runFactor = -runningIncr;
       runInclineFactor = -runningInclineIncr;
+      rowFactor = -incr;
     }
 
     switch (key.name) {
@@ -166,6 +169,12 @@ process.stdin.on("keypress", (str, key) => {
           powerMeterSpeed = 0;
         }
         break;
+      case "w":
+        rowStrokeRate += rowFactor;
+        if (rowStrokeRate < 0) {
+          rowStrokeRate = 0;
+        }
+        break;
       case "d":
         runningCadence += runFactor;
         if (runningCadence < 0) {
@@ -187,12 +196,14 @@ process.stdin.on("keypress", (str, key) => {
           pausedRunningSpeed = runningSpeed;
           pausedPowerMeterSpeed = powerMeterSpeed;
           pausedRunningCadence = runningCadence;
+          pausedRowStrokeRate = rowStrokeRate;
           cadence = 0;
           power = 0;
           hr = 75;
           runningSpeed = 0;
           powerMeterSpeed = 0;
           runningCadence = 0;
+          rowStrokeRate = 0;
         } else {
           paused = false;
           cadence = pausedCadence;
@@ -201,6 +212,7 @@ process.stdin.on("keypress", (str, key) => {
           runningSpeed = pausedRunningSpeed;
           powerMeterSpeed = pausedPowerMeterSpeed;
           runningCadence = pausedRunningCadence;
+          rowStrokeRate = pausedRowStrokeRate;
         }
         break;
       case "0":
@@ -209,6 +221,7 @@ process.stdin.on("keypress", (str, key) => {
         runningCadence = 0;
         runningSpeed = 0;
         hr = 55;
+        rowStrokeRate = 0;
         break;
       case "1":
         power = 130;
@@ -216,6 +229,7 @@ process.stdin.on("keypress", (str, key) => {
         runningCadence = 170;
         runningSpeed = 10;
         hr = 130;
+        rowStrokeRate = 18;
         break;
       case "2":
         power = 190;
@@ -223,6 +237,7 @@ process.stdin.on("keypress", (str, key) => {
         hr = 130;
         runningCadence = 170;
         runningSpeed = 11;
+        rowStrokeRate = 22;
         break;
       case "3":
         power = 250;
@@ -230,6 +245,7 @@ process.stdin.on("keypress", (str, key) => {
         runningCadence = 180;
         runningSpeed = 12;
         hr = 160;
+        rowStrokeRate = 28;
         break;
       default:
         listKeys();
@@ -285,7 +301,7 @@ let notifyBikeFTMS = function () {
     zwackBLE.notifyFTMS({
       watts: watts,
       cadence: cadence,
-      heartRate: heartRate,
+      heart_rate: heartRate,
     });
   } catch (e) {
     console.error(e);
@@ -302,13 +318,28 @@ let notifyTreadmillFTMS = function () {
     zwackBLE.notifyFTMS({
       speed: notifyRunningSpeed,
       inclination: notifyRunningIncline,
-      heartRate: heartRate,
+      heart_rate: heartRate,
     });
   } catch (e) {
     console.error(e);
   }
 
   setTimeout(notifyTreadmillFTMS, notificationInterval);
+};
+
+let notifyRowFTMS = function () {
+  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+
+  try {
+    zwackBLE.notifyFTMS({
+      stroke_rate: rowStrokeRate,
+      heart_rate: heartRate,
+    });
+  } catch (e) {
+    console.error(e);
+  }
+
+  setTimeout(notifyRowFTMS, notificationInterval);
 };
 
 // Separate function for updating heart rate with a different interval
@@ -434,18 +465,18 @@ let notifyRSC = function () {
   setTimeout(notifyRSC, notificationInterval);
 };
 
-let notifyHeartRate = function() { 
+let notifyHeartRate = function () {
   const heartRate = hr > 89 ? Math.floor(hr + hrNoise) : undefined;
   try {
     zwackBLE.notifyHeartRate({
-      heart_rate: heartRate
+      heart_rate: heartRate,
     });
   } catch (e) {
     console.error(e);
   }
 
   setTimeout(notifyHeartRate, notificationInterval);
-}
+};
 
 function listParams() {
   console.log(`\nBLE Sensor parameters:`);
@@ -475,6 +506,9 @@ function listParams() {
   console.log(`    Cadence: ${Math.floor(runningCadence)} steps/min`);
   console.log(`    Incline: ${runningIncline} degrees`);
 
+  console.log(`\nRowing:`);
+  console.log(`    Stroke rate: ${rowStrokeRate} W`);
+
   console.log("\nEtc:");
   console.log(`\nPower/Speed Randomness: ${randomness}`);
   console.log(`      Cadence Randomness: ${cadRandomness}`);
@@ -491,20 +525,23 @@ function listKeys() {
   console.log("s/S - Decrease/Increase running speed");
   console.log("d/D - Decrease/Increase running cadence");
   console.log("e/E - Decrease/Increase running incline (0-12)");
+  console.log("w/W - Decreate/Increase rowing stroke rate");
   console.log("h/H - Decrease/Increase heart rate");
   console.log("n/N - Decrease/Increase heart rate randomness");
   console.log(
     "a/A - Pause/Resume (capture current state - set to 0 or revert)"
   );
-  console.log("0 - Quick stop: 0 cadence, power, speed; 55 heart rate");
   console.log(
-    "1 - Average: Cycling power 130, Cadence 80; Running speed 10, Cadence 170; Heart rate 130"
+    "0 - Quick stop: 0 cadence, power, speed, stroke_rate; 55 heart rate"
   );
   console.log(
-    "2 - Tempo: Cycling power 190, Cadence 90; Running speed 11, Cadence 170; Heart rate 130"
+    "1 - Average: Cycling power 130, Cadence 80; Running speed 10, Cadence 170; Rowing 18 spm; Heart rate 130"
   );
   console.log(
-    "3 - Threshold: Cycling power 250, Cadence 98; Running speed 12, Cadence 180; Heart rate 160"
+    "2 - Tempo: Cycling power 190, Cadence 90; Running speed 11, Cadence 170; Rowing 22 spm; Heart rate 130"
+  );
+  console.log(
+    "3 - Threshold: Cycling power 250, Cadence 98; Running speed 12, Cadence 180; Rowing 28 spm; Heart rate 160"
   );
   console.log(
     "i/I - Decrease/Increase parameter increment (affects cycling cadence, power, cadence, randomness)"
@@ -551,6 +588,7 @@ console.log(
       SPD: containsSPD,
       FTMSBike: containsFTMSBike,
       FTMSTreadmill: containsFTMSTreadmill,
+      FTMSRow: containsFTMSRow,
       RSC: containsRSC,
       HeartRate: containsHR,
     })
@@ -582,6 +620,12 @@ if (containsFTMSTreadmill) {
     "[Zwack] Starting notifications for FTMS-Treadmill - speed+incline"
   );
   notifyTreadmillFTMS(); // Simulate FTMS Treadmill - Broadcasting Speed, incline
+}
+if (containsFTMSRow) {
+  console.log(
+    "[Zwack] Starting notifications for FTMS-Row - stroke_rate+distance+power"
+  );
+  notifyRowFTMS();
 }
 if (containsRSC) {
   console.log("[Zwack] Starting notifications for RSC - speed+cadence");
