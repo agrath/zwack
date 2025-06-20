@@ -72,7 +72,7 @@ rsc Running Speed: 4.4703888888888885 +0ms
 
 Start the simulator by executing:
 
-    npm run simulator -- --variable=ftms-bike --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed --variable=hr
+    npm run simulator -- --variable=ftms-bike --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed --variable=heartrate
 
 On a different machine start your fitness app, bike computer or indoor virtual bike simulation software, like Zwift, and pair up the Zwack BLE sensor. The sensor name should be `Zwack`, it may have some numbers added to the name or you may see the host name of the computer running zwack. It all depends on the operating system you're uing to run Zwack.
 
@@ -104,15 +104,15 @@ Press `x` or `q` to exit Zwack.
 
   **Bike**
 
-  `npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed --variable=hr`
+  `npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed --variable=heartrate`
   
   **Treadmill**
   
-  `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric --variable=hr`
+  `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric --variable=heartrate`
   
   **Rower**
   
-  `npm run simulator -- --variable=ftms-row --variable=hr`
+  `npm run simulator -- --variable=ftms-row --variable=heartrate`
   
 
   * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
@@ -123,7 +123,7 @@ Press `x` or `q` to exit Zwack.
   * power - enable broadcasting CSP with Power only data
   * cadence - enable broadcasting CSP with Cadence data (to be combined with `power`)
   * speed - enable broadcasting CSP with Speed data (to be combined with `power` and `cadence`)
-  * hr - enable broadcasting HR with HR BPM data (and a battery service at 75%)
+  * heartrate - enable broadcasting HR with HR BPM data (and a battery service at 75%)
   * metric - sets running speed to metric rather than imperial (km/hr instead of miles/hr)
     
 # Requirements
