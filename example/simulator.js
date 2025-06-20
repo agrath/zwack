@@ -164,7 +164,7 @@ process.stdin.on("keypress", (str, key) => {
           runningSpeed = 0;
         }
 
-        powerMeterSpeed += runFactor;
+        powerMeterSpeed += factor;
         if (powerMeterSpeed < 0) {
           powerMeterSpeed = 0;
         }
