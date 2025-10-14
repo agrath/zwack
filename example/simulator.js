@@ -295,7 +295,7 @@ let notifyBikeFTMS = function () {
     cadence > 0 && power > 0
       ? Math.floor(Math.random() * cadRandomness + cadence)
       : 0;
-  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+  const heartRate = containsHR && hr > 89 ? hr + hrNoise : undefined;
 
   try {
     zwackBLE.notifyFTMS({
@@ -312,7 +312,7 @@ let notifyBikeFTMS = function () {
 
 let notifyTreadmillFTMS = function () {
   prepareRunningData();
-  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+  const heartRate = containsHR && hr > 89 ? hr + hrNoise : undefined;
 
   try {
     zwackBLE.notifyFTMS({
@@ -328,7 +328,7 @@ let notifyTreadmillFTMS = function () {
 };
 
 let notifyRowFTMS = function () {
-  const heartRate = hr > 89 ? hr + hrNoise : undefined;
+  const heartRate = containsHR && hr > 89 ? hr + hrNoise : undefined;
 
   try {
     zwackBLE.notifyFTMS({
