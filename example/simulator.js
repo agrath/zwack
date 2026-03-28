@@ -1,5 +1,4 @@
 const config = require("../lib/config");
-var ZwackBLE = require("../lib/zwack-ble-sensor");
 const blessed = require("blessed");
 const parseArgs = require("minimist");
 const args = parseArgs(process.argv.slice(2));
@@ -62,8 +61,11 @@ if (enabledServices.length === 0) {
   process.exit(1);
 }
 
-// Initialise shared config for lib modules
+// Initialise shared config for lib modules (must be before requiring ZwackBLE)
 config.init(enabledServices);
+
+// Require ZwackBLE after config is initialised so lib modules see the enabled services
+var ZwackBLE = require("../lib/zwack-ble-sensor");
 
 let containsFTMSBike = enabledServices.includes("ftms-bike");
 let containsFTMSTreadmill = enabledServices.includes("ftms-treadmill");
