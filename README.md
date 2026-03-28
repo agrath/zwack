@@ -104,15 +104,15 @@ Press `x` or `q` to exit Zwack.
 
   **Bike**
 
-  `npm run simulator -- --variable=ftms-bike --variable=csp --variable=power --variable=cadence --variable=speed --variable=heartrate`
+  `npm run simulator -- --variable=ftms-bike --variable=ftms-control --variable=csp --variable=power --variable=cadence --variable=speed --variable=heartrate`
   
   **Treadmill**
   
-  `npm run simulator -- --variable=ftms-treadmill --variable=rsc --variable=metric --variable=heartrate`
+  `npm run simulator -- --variable=ftms-treadmill --variable=ftms-control --variable=rsc --variable=metric --variable=heartrate`
   
   **Rower**
   
-  `npm run simulator -- --variable=ftms-row --variable=heartrate`
+  `npm run simulator -- --variable=ftms-row --variable=ftms-control --variable=heartrate`
   
 
   * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
@@ -123,6 +123,7 @@ Press `x` or `q` to exit Zwack.
   * power - enable broadcasting CSP with Power only data
   * cadence - enable broadcasting CSP with Cadence data (to be combined with `power`)
   * speed - enable broadcasting CSP with Speed data (to be combined with `power` and `cadence`)
+  * ftms-control - enable FTMS Control Point (0x2AD9) and Machine Status (0x2ADA) characteristics for controllable device simulation
   * heartrate - enable broadcasting HR with HR BPM data (and a battery service at 75%)
   * metric - sets running speed to metric rather than imperial (km/hr instead of miles/hr)
     
