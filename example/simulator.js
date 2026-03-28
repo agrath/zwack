@@ -600,7 +600,7 @@ renderShortcuts();
 renderValues();
 
 log(`Sensor: {bold}${sensorName}{/bold}`);
-log(`Services: ${args.variable}`);
+log(`Services: ${enabledServices.join(", ")}`);
 
 if (containsCSP && containsPWR && !containsCAD && !containsSPD) {
   log("Starting CSP — power only");
