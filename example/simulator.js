@@ -1,38 +1,81 @@
+const config = require("../lib/config");
 var ZwackBLE = require("../lib/zwack-ble-sensor");
 const blessed = require("blessed");
 const parseArgs = require("minimist");
 const args = parseArgs(process.argv.slice(2));
 
-let containsFTMSBike = false;
-let containsFTMSTreadmill = false;
-let containsFTMSRow = false;
-let containsFTMSControl = false;
-let containsRSC = false;
-let containsCSP = false;
-let containsSPD = false;
-let containsPWR = false;
-let containsCAD = false;
-let containsHR = false;
-let metric = false;
+// Presets: shorthand for common service combinations
+const presets = {
+  bike: ["ftms-bike", "ftms-control", "csp", "power", "cadence", "speed", "heartrate"],
+  treadmill: ["ftms-treadmill", "ftms-control", "rsc", "metric", "heartrate"],
+  rower: ["ftms-row", "ftms-control", "heartrate"],
+};
 
-if (args.variable === undefined) {
+// Resolve enabled services from --enabled, --variable (legacy), --preset, or positional args
+function resolveEnabled() {
+  let services = [];
+
+  // --preset=bike or --preset bike
+  if (args.preset) {
+    const presetName = Array.isArray(args.preset) ? args.preset[0] : args.preset;
+    if (presets[presetName]) {
+      services = services.concat(presets[presetName]);
+    } else {
+      console.error(`Unknown preset: ${presetName}. Available: ${Object.keys(presets).join(", ")}`);
+      process.exit(1);
+    }
+  }
+
+  // --enabled ftms-bike ftms-control heartrate (or --enabled=ftms-bike)
+  if (args.enabled) {
+    const enabled = Array.isArray(args.enabled) ? args.enabled : [args.enabled];
+    services = services.concat(enabled);
+  }
+
+  // --variable (legacy, still supported)
+  if (args.variable) {
+    const variable = Array.isArray(args.variable) ? args.variable : [args.variable];
+    services = services.concat(variable);
+  }
+
+  // Also grab any remaining positional args after --enabled
+  if (args._ && args._.length > 0) {
+    services = services.concat(args._.map(String));
+  }
+
+  return services;
+}
+
+const enabledServices = resolveEnabled();
+
+if (enabledServices.length === 0) {
   console.error(
-    "Error: variable parameter is required eg: npm run simulator -- --variable=ftms-bike"
+    "Error: No services specified.\n\n" +
+    "Usage:\n" +
+    "  npm run simulator -- --enabled ftms-bike ftms-control heartrate\n" +
+    "  npm run simulator -- --preset bike\n" +
+    "  npm run simulator -- --variable=ftms-bike --variable=heartrate  (legacy)\n\n" +
+    "Presets: " + Object.keys(presets).join(", ") + "\n" +
+    "Services: ftms-bike, ftms-treadmill, ftms-row, ftms-control, csp, rsc,\n" +
+    "          power, cadence, speed, heartrate, metric"
   );
   process.exit(1);
-} else {
-  containsFTMSBike = args.variable.includes("ftms-bike");
-  containsFTMSTreadmill = args.variable.includes("ftms-treadmill");
-  containsFTMSRow = args.variable.includes("ftms-row");
-  containsFTMSControl = args.variable.includes("ftms-control");
-  containsRSC = args.variable.includes("rsc");
-  containsCSP = args.variable.includes("csp");
-  containsSPD = args.variable.includes("speed");
-  containsPWR = args.variable.includes("power");
-  containsCAD = args.variable.includes("cadence");
-  containsHR = args.variable.includes("heartrate");
-  metric = args.variable.includes("metric");
 }
+
+// Initialise shared config for lib modules
+config.init(enabledServices);
+
+let containsFTMSBike = enabledServices.includes("ftms-bike");
+let containsFTMSTreadmill = enabledServices.includes("ftms-treadmill");
+let containsFTMSRow = enabledServices.includes("ftms-row");
+let containsFTMSControl = enabledServices.includes("ftms-control");
+let containsRSC = enabledServices.includes("rsc");
+let containsCSP = enabledServices.includes("csp");
+let containsSPD = enabledServices.includes("speed");
+let containsPWR = enabledServices.includes("power");
+let containsCAD = enabledServices.includes("cadence");
+let containsHR = enabledServices.includes("heartrate");
+let metric = enabledServices.includes("metric");
 
 // default parameters
 let hr = 130;

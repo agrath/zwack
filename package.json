@@ -52,6 +52,9 @@
     "minor": "npm version minor",
     "patch": "npm version patch",
     "simulator": "node ./example/simulator.js",
+    "bike": "node ./example/simulator.js --preset bike",
+    "treadmill": "node ./example/simulator.js --preset treadmill",
+    "rower": "node ./example/simulator.js --preset rower",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "version": "0.2.1"

@@ -70,9 +70,17 @@ rsc Running Speed: 4.4703888888888885 +0ms
 
 # Using the simulator
 
-Start the simulator by executing:
+Start the simulator using a preset:
 
-    npm run simulator -- --variable=ftms-bike --variable=rsc --variable=csp --variable=power --variable=cadence --variable=speed --variable=heartrate
+    npm run bike
+    npm run treadmill
+    npm run rower
+
+Or with individual services:
+
+    npm run simulator -- --enabled ftms-bike ftms-control csp power cadence speed heartrate
+
+The legacy `--variable=` syntax is still supported for backward compatibility.
 
 On a different machine start your fitness app, bike computer or indoor virtual bike simulation software, like Zwift, and pair up the Zwack BLE sensor. The sensor name should be `Zwack`, it may have some numbers added to the name or you may see the host name of the computer running zwack. It all depends on the operating system you're uing to run Zwack.
 
@@ -102,30 +110,45 @@ Press `x` or `q` to exit Zwack.
 
 # Command Line Arguments
 
-  **Bike**
+  ## Presets
 
-  `npm run simulator -- --variable=ftms-bike --variable=ftms-control --variable=csp --variable=power --variable=cadence --variable=speed --variable=heartrate`
-  
-  **Treadmill**
-  
-  `npm run simulator -- --variable=ftms-treadmill --variable=ftms-control --variable=rsc --variable=metric --variable=heartrate`
-  
-  **Rower**
-  
-  `npm run simulator -- --variable=ftms-row --variable=ftms-control --variable=heartrate`
-  
+  Presets provide a quick way to start common configurations:
 
-  * ftms-bike - enable broadcasting as FTMS service with the org.bluetooth.characteristic.indoor_bike_data uuid 2AD2
-  * ftms-treadmill - enable broadcasting as FTMS service with the org.bluetooth.characteristic.treadmill_data uuid 2ACD
-  * ftms-row - enable broadcasting as FTMS service with the org.bluetooth.characteristic.rower_data uuid 2AD1
-  * rsc  - enable broadcasting as RSC service
-  * csp  - enable broadcasting as CSP service
-  * power - enable broadcasting CSP with Power only data
-  * cadence - enable broadcasting CSP with Cadence data (to be combined with `power`)
-  * speed - enable broadcasting CSP with Speed data (to be combined with `power` and `cadence`)
-  * ftms-control - enable FTMS Control Point (0x2AD9) and Machine Status (0x2ADA) characteristics for controllable device simulation
-  * heartrate - enable broadcasting HR with HR BPM data (and a battery service at 75%)
-  * metric - sets running speed to metric rather than imperial (km/hr instead of miles/hr)
+  | Preset | Command | Services |
+  |--------|---------|----------|
+  | Bike | `npm run bike` | ftms-bike, ftms-control, csp, power, cadence, speed, heartrate |
+  | Treadmill | `npm run treadmill` | ftms-treadmill, ftms-control, rsc, metric, heartrate |
+  | Rower | `npm run rower` | ftms-row, ftms-control, heartrate |
+
+  ## Custom Configuration
+
+  Use `--enabled` to specify individual services:
+
+  ```
+  npm run simulator -- --enabled ftms-bike ftms-control csp power cadence heartrate
+  ```
+
+  Or use `--preset` with additional services:
+
+  ```
+  npm run simulator -- --preset bike --enabled metric
+  ```
+
+  ## Available Services
+
+  | Service | Description |
+  |---------|-------------|
+  | ftms-bike | FTMS Indoor Bike Data (0x2AD2) |
+  | ftms-treadmill | FTMS Treadmill Data (0x2ACD) |
+  | ftms-row | FTMS Rower Data (0x2AD1) |
+  | ftms-control | FTMS Control Point (0x2AD9) and Machine Status (0x2ADA) |
+  | csp | Cycling Power Service |
+  | rsc | Running Speed and Cadence Service |
+  | power | CSP with Power data |
+  | cadence | CSP with Cadence data (combine with `power`) |
+  | speed | CSP with Speed data (combine with `power` and `cadence`) |
+  | heartrate | Heart Rate service with BPM data (and battery at 75%) |
+  | metric | Use metric units for running speed (km/h instead of mph) |
     
 # Requirements
 
