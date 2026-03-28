@@ -38,16 +38,17 @@ if (args.variable === undefined) {
 let hr = 130;
 let cadence = 90;
 let power = 130;
-let powerMeterSpeed = 18;
-let powerMeterSpeedUnit = 2048;
+let powerMeterSpeed = 18; // kmh
+let powerMeterSpeedUnit = 2048; // Last Event time expressed in Unit of 1/2048 second
 let runningCadence = 180;
 let runningSpeed = 0;
+//According to Strava, the average running pace for a logged run is 9:53 per mile. This works out to an average running speed of just over 6 miles per hour.
 if (!metric) {
-  runningSpeed = 6;
+  runningSpeed = 6; // 6 miles/hour or 9:53/mile
 } else {
-  runningSpeed = 10;
+  runningSpeed = 10; // 10 km/hour or 6:00/km
 }
-let rowStrokeRate = 24;
+let rowStrokeRate = 24; //average is 24-30
 let randomness = 5;
 let cadRandomness = 5;
 let hrRandomness = 5;
@@ -59,7 +60,7 @@ let runningInclineIncr = 0.5;
 let runningIncline = 0;
 let stroke_count = 0;
 let wheel_count = 0;
-let wheel_circumference = 2096;
+let wheel_circumference = 2096; // millimeter
 let notificationInterval = 1000;
 let hrUpdateInterval = 5000;
 let watts = power;
@@ -436,7 +437,13 @@ let notifyCadenceCSP = function () {
   setTimeout(notifyCadenceCSP, (60 * 1000) / (Math.random() * randomness + cadence));
 };
 
+// Simulate Cycling Power - Broadcasting Power and Cadence & Speed
+// This setup is NOT ideal. Cadence and Speed changes will be erratic
+//   - takes ~2 sec to stabilize and be reflected in output
+//   - will be unable to inject randomness into the output
+//   - will need help on how to improve it
 var notifyCPCS = function () {
+  // https://www.hackster.io/neal_markham/ble-bicycle-speed-sensor-f60b80
   var spd_int = Math.round(
     (wheel_circumference * powerMeterSpeedUnit * 60 * 60) / (1000 * 1000 * powerMeterSpeed)
   );
