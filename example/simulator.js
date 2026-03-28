@@ -165,7 +165,7 @@ function renderServices() {
   const svc = (name, enabled) =>
     enabled
       ? `  {green-fg}●{/green-fg} ${name}`
-      : `  {red-fg}○{/red-fg} {#666666-fg}${name}{/#666666-fg}`;
+      : `  {red-fg}○{/red-fg} ${name}`;
 
   servicesBox.setContent(
     [
