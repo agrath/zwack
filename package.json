@@ -17,8 +17,9 @@
   "bundleDependencies": [],
   "dependencies": {
     "@abandonware/bleno": "^0.6.1",
-    "debug": "4.4.0",
     "@abandonware/bluetooth-hci-socket": "^0.5.3-12",
+    "blessed": "^0.1.81",
+    "debug": "4.4.0",
     "minimist": "^1.2.8",
     "readline": "^1.3.0"
   },
