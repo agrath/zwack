@@ -417,6 +417,35 @@ const zwackBLE = new ZwackBLE({
   serialNumber: "06-C8673287492DE",
 });
 
+// ─── FTMS Control Target Handling ──────────────────────────────────────────
+
+let ftmsControlActive = false;
+
+zwackBLE.on('ftms-target', (target) => {
+  ftmsControlActive = true;
+  switch (target.type) {
+    case 'power':
+      power = Math.round(target.value);
+      log(`{cyan-fg}FTMS Control:{/cyan-fg} Target Power set to {bold}${power}W{/bold}`);
+      break;
+    case 'resistance':
+      // Simulate power from resistance and cadence: P = resistance * cadence * 0.1
+      const computedPower = Math.round(target.value * cadence * 0.1);
+      power = computedPower;
+      log(`{cyan-fg}FTMS Control:{/cyan-fg} Target Resistance set to {bold}${target.value}{/bold} → computed power {bold}${computedPower}W{/bold}`);
+      break;
+    case 'speed':
+      runningSpeed = target.value;
+      log(`{cyan-fg}FTMS Control:{/cyan-fg} Target Speed set to {bold}${target.value} km/h{/bold}`);
+      break;
+    case 'inclination':
+      runningIncline = target.value;
+      log(`{cyan-fg}FTMS Control:{/cyan-fg} Target Inclination set to {bold}${target.value}%{/bold}`);
+      break;
+  }
+  refreshScreen();
+});
+
 // ─── Notification functions ────────────────────────────────────────────────
 
 let notifyPowerCSP = function () {
