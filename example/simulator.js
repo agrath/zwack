@@ -164,7 +164,7 @@ screen.key(["x", "q", "C-c"], () => process.exit(0));
 function renderServices() {
   const svc = (name, enabled) =>
     enabled
-      ? `  {green-fg}●{/green-fg} ${name}`
+      ? `  {green-fg}●{/green-fg} {bold}${name}{/bold}`
       : `  {red-fg}○{/red-fg} ${name}`;
 
   servicesBox.setContent(
