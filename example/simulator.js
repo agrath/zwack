@@ -323,7 +323,8 @@ screen.on("keypress", (ch, key) => {
     rowFactor = -incr;
   }
 
-  switch (key.name) {
+  const keyName = key.name || ch;
+  switch (keyName) {
     case "c":
       cadence = Math.max(0, Math.min(200, cadence + factor));
       break;
