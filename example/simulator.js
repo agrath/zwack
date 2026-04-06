@@ -327,37 +327,48 @@ screen.on("keypress", (ch, key) => {
   switch (keyName) {
     case "c":
       cadence = Math.max(0, Math.min(200, cadence + factor));
+      log(`Cadence → ${cadence} rpm`);
       break;
     case "p":
       power = Math.max(0, Math.min(2500, power + factor));
+      log(`Power → ${power} W`);
       break;
     case "h":
       hr = Math.max(80, Math.min(190, hr + factor));
+      log(`Heart rate → ${hr} bpm`);
       break;
     case "r":
       randomness = Math.max(0, randomness + factor);
+      log(`Power randomness → ${randomness}`);
       break;
     case "t":
       cadRandomness = Math.max(0, cadRandomness + factor);
+      log(`Cadence randomness → ${cadRandomness}`);
       break;
     case "n":
       hrRandomness = Math.max(0, hrRandomness + factor);
+      log(`HR randomness → ${hrRandomness}`);
       break;
     case "e":
       runningIncline = Math.max(0, Math.min(12, runningIncline + runInclineFactor));
+      log(`Incline → ${runningIncline}%`);
       break;
     case "s":
       runningSpeed = Math.max(0, runningSpeed + runFactor);
       powerMeterSpeed = Math.max(0, powerMeterSpeed + factor);
+      log(`Speed → ${runningSpeed} / ${powerMeterSpeed} km/h`);
       break;
     case "w":
       rowStrokeRate = Math.max(0, rowStrokeRate + rowFactor);
+      log(`Stroke rate → ${rowStrokeRate} spm`);
       break;
     case "d":
       runningCadence = Math.max(0, runningCadence + runFactor);
+      log(`Run cadence → ${runningCadence} spm`);
       break;
     case "i":
       incr = Math.max(1, incr + Math.abs(factor) / factor);
+      log(`Increment → ${incr}`);
       renderShortcuts();
       break;
     case "a":
