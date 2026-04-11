@@ -458,6 +458,17 @@ zwackBLE.on('ftms-target', (target) => {
   refreshScreen();
 });
 
+zwackBLE.on('stateChange', (state) => {
+  if (state === 'poweredOn') {
+    log('{green-fg}Bluetooth adapter powered on{/green-fg}');
+  } else if (state === 'poweredOff') {
+    log('{red-fg}Bluetooth adapter is powered off — waiting for it to come up (polling every 1s){/red-fg}');
+    log('{yellow-fg}If this persists, run: sudo hciconfig hci0 up{/yellow-fg}');
+  } else if (state === 'unauthorized') {
+    log('{red-fg}Bluetooth access unauthorized — try: sudo setcap cap_net_raw+eip $(which node){/red-fg}');
+  }
+});
+
 // ─── Notification functions ────────────────────────────────────────────────
 
 let notifyPowerCSP = function () {
@@ -639,6 +650,9 @@ debugLib.log = function (...args) {
 renderServices();
 renderShortcuts();
 renderValues();
+
+// Replay any buffered startup messages from BLE initialisation
+ZwackBLE.startupMessages.forEach((msg) => log(msg));
 
 log(`Sensor: {bold}${sensorName}{/bold}`);
 log(`Services: ${enabledServices.join(", ")}`);
