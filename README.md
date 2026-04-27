@@ -91,10 +91,9 @@ The ZwackBLE sensor may show up as `Zwack` or has the host name of the machine r
 Updating simulation parameters
 
     List of Available Keys
-      c/C - Decrease/Increase cadence
+      c/C - Decrease/Increase cadence (cycling rpm or running spm — whichever is active)
       p/P - Decrease/Increase power
       s/S - Decrease/Increase running/cycling speed
-      d/D - Decrease/Increase running cadence  
 
       r/R - Decrease/Increase parameter variability
       i/I - Decrease/Increase parameter increment

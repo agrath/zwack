@@ -228,13 +228,16 @@ function renderServices() {
 }
 
 function renderShortcuts() {
+  const runMode = containsRSC || containsFTMSTreadmill;
+  const cadenceLabel = runMode
+    ? "Run cadence ±" + runningIncr
+    : "Cadence ±" + incr;
   shortcutsBox.setContent(
     [
-      "  {bold}c/C{/bold}  Cadence ±" + incr +
+      "  {bold}c/C{/bold}  " + cadenceLabel +
         "      {bold}p/P{/bold}  Power ±" + incr +
         "       {bold}h/H{/bold}  Heart rate ±" + incr,
       "  {bold}s/S{/bold}  Speed ±" + runningIncr +
-        "       {bold}d/D{/bold}  Run cadence ±" + runningIncr +
         "  {bold}e/E{/bold}  Incline ±" + runningInclineIncr,
       "  {bold}w/W{/bold}  Stroke rate ±" + incr +
         "  {bold}i/I{/bold}  Increment ±1",
@@ -326,8 +329,13 @@ screen.on("keypress", (ch, key) => {
   const keyName = key.name || ch;
   switch (keyName) {
     case "c":
-      cadence = Math.max(0, Math.min(200, cadence + factor));
-      log(`Cadence → ${cadence} rpm`);
+      if (containsRSC || containsFTMSTreadmill) {
+        runningCadence = Math.max(0, runningCadence + runFactor);
+        log(`Run cadence → ${runningCadence} spm`);
+      } else {
+        cadence = Math.max(0, Math.min(200, cadence + factor));
+        log(`Cadence → ${cadence} rpm`);
+      }
       break;
     case "p":
       power = Math.max(0, Math.min(2500, power + factor));
@@ -361,10 +369,6 @@ screen.on("keypress", (ch, key) => {
     case "w":
       rowStrokeRate = Math.max(0, rowStrokeRate + rowFactor);
       log(`Stroke rate → ${rowStrokeRate} spm`);
-      break;
-    case "d":
-      runningCadence = Math.max(0, runningCadence + runFactor);
-      log(`Run cadence → ${runningCadence} spm`);
       break;
     case "i":
       incr = Math.max(1, incr + Math.abs(factor) / factor);
