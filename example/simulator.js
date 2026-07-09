@@ -364,7 +364,9 @@ screen.on("keypress", (ch, key) => {
     case "s":
       if (containsRSC || containsFTMSTreadmill) {
         runningSpeed = Math.max(0, runningSpeed + runFactor);
-        log(`Speed → ${runningSpeed} km/h`);
+        const unit = metric ? "km/h" : "m/h";
+        const paceUnit = metric ? "min/km" : "min/mi";
+        log(`Speed → ${runningSpeed} ${unit} (${speedToPace(runningSpeed)} ${paceUnit})`);
       } else {
         powerMeterSpeed = Math.max(0, powerMeterSpeed + factor);
         log(`Speed → ${powerMeterSpeed} km/h`);
