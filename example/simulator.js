@@ -362,9 +362,13 @@ screen.on("keypress", (ch, key) => {
       log(`Incline → ${runningIncline}%`);
       break;
     case "s":
-      runningSpeed = Math.max(0, runningSpeed + runFactor);
-      powerMeterSpeed = Math.max(0, powerMeterSpeed + factor);
-      log(`Speed → ${runningSpeed} / ${powerMeterSpeed} km/h`);
+      if (containsRSC || containsFTMSTreadmill) {
+        runningSpeed = Math.max(0, runningSpeed + runFactor);
+        log(`Speed → ${runningSpeed} km/h`);
+      } else {
+        powerMeterSpeed = Math.max(0, powerMeterSpeed + factor);
+        log(`Speed → ${powerMeterSpeed} km/h`);
+      }
       break;
     case "w":
       rowStrokeRate = Math.max(0, rowStrokeRate + rowFactor);
