@@ -118,6 +118,13 @@ Press `x` or `q` to exit Zwack.
   | Bike | `npm run bike` | ftms-bike, ftms-control, csp, power, cadence, speed, heartrate |
   | Treadmill | `npm run treadmill` | ftms-treadmill, ftms-control, rsc, metric, heartrate |
   | Rower | `npm run rower` | ftms-row, ftms-control, heartrate |
+  | Limit | `--preset bike,limit` | inclination-range (adds to another preset) |
+
+  Presets can be combined with a comma (or by repeating `--preset`):
+
+  ```
+  npm run simulator -- --preset bike,limit
+  ```
 
   ## Custom Configuration
 
@@ -148,6 +155,29 @@ Press `x` or `q` to exit Zwack.
   | speed | CSP with Speed data (combine with `power` and `cadence`) |
   | heartrate | Heart Rate service with BPM data (and battery at 75%) |
   | metric | Use metric units for running speed (km/h instead of mph) |
+  | inclination-range | Publish the FTMS Supported Inclination Range (0x2AD5) on a bike or rower too (a treadmill always does) |
+
+  ## Supported Inclination Range
+
+  The FTMS spec (v1.0, Table 4.1, C.2) makes Supported Inclination Range mandatory when a machine supports
+  the Inclination Target Setting feature (treadmills) and optional otherwise. A bike trainer driven by
+  Indoor Bike Simulation Parameters doesn't have to publish it, but may, to tell an app what grades it can
+  simulate. By default Zwack's bike doesn't, like many real trainers; `inclination-range` (or the `limit`
+  preset) makes it publish one.
+
+  | Machine | Default range |
+  |---------|---------------|
+  | Treadmill | 0% to 12% |
+  | Bike or rower with `inclination-range` | -10% to 20% |
+
+  Override either end with `--incline-min` / `--incline-max` (percent, 0.1% resolution). Use the `=` form
+  for a negative value:
+
+  ```
+  npm run simulator -- --preset bike,limit --incline-min=-15 --incline-max=25
+  ```
+
+  The published range is shown in the log at startup.
     
 # Requirements
 

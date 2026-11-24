@@ -8,20 +8,28 @@ const presets = {
   bike: ["ftms-bike", "ftms-control", "csp", "power", "cadence", "speed", "heartrate"],
   treadmill: ["ftms-treadmill", "ftms-control", "rsc", "metric", "heartrate"],
   rower: ["ftms-row", "ftms-control", "heartrate"],
+  // Adds to another preset: publish the FTMS Supported Inclination Range on a bike or rower too
+  // (a treadmill always does), e.g. --preset bike,limit
+  limit: ["inclination-range"],
 };
 
 // Resolve enabled services from --enabled, --variable (legacy), --preset, or positional args
 function resolveEnabled() {
   let services = [];
 
-  // --preset=bike or --preset bike
+  // --preset=bike, --preset bike, or several: --preset bike,limit (or --preset bike --preset limit)
   if (args.preset) {
-    const presetName = Array.isArray(args.preset) ? args.preset[0] : args.preset;
-    if (presets[presetName]) {
-      services = services.concat(presets[presetName]);
-    } else {
-      console.error(`Unknown preset: ${presetName}. Available: ${Object.keys(presets).join(", ")}`);
-      process.exit(1);
+    const presetNames = (Array.isArray(args.preset) ? args.preset : [args.preset])
+      .flatMap((p) => String(p).split(","))
+      .map((p) => p.trim())
+      .filter(Boolean);
+    for (const presetName of presetNames) {
+      if (presets[presetName]) {
+        services = services.concat(presets[presetName]);
+      } else {
+        console.error(`Unknown preset: ${presetName}. Available: ${Object.keys(presets).join(", ")}`);
+        process.exit(1);
+      }
     }
   }
 
@@ -42,7 +50,19 @@ function resolveEnabled() {
     services = services.concat(args._.map(String));
   }
 
-  return services;
+  return [...new Set(services)];
+}
+
+// --incline-min=-15 --incline-max=25: the Supported Inclination Range to publish, in percent. Use the
+// = form for a negative value, or minimist reads it as another flag.
+function inclineOption(name) {
+  if (args[name] === undefined) return null;
+  const value = Number(args[name]);
+  if (!Number.isFinite(value)) {
+    console.error(`--${name} must be a number of percent, e.g. --${name}=-10`);
+    process.exit(1);
+  }
+  return value;
 }
 
 const enabledServices = resolveEnabled();
@@ -53,16 +73,18 @@ if (enabledServices.length === 0) {
     "Usage:\n" +
     "  npm run simulator -- --enabled ftms-bike ftms-control heartrate\n" +
     "  npm run simulator -- --preset bike\n" +
+    "  npm run simulator -- --preset bike,limit  (a bike that publishes its grade range)\n" +
     "  npm run simulator -- --variable=ftms-bike --variable=heartrate  (legacy)\n\n" +
     "Presets: " + Object.keys(presets).join(", ") + "\n" +
     "Services: ftms-bike, ftms-treadmill, ftms-row, ftms-control, csp, rsc,\n" +
-    "          power, cadence, speed, heartrate, metric"
+    "          power, cadence, speed, heartrate, metric, inclination-range\n" +
+    "Options:  --incline-min=<pct> --incline-max=<pct>  (the Supported Inclination Range)"
   );
   process.exit(1);
 }
 
 // Initialise shared config for lib modules (must be before requiring ZwackBLE)
-config.init(enabledServices);
+config.init(enabledServices, { inclineMin: inclineOption("incline-min"), inclineMax: inclineOption("incline-max") });
 
 // Require ZwackBLE after config is initialised so lib modules see the enabled services
 var ZwackBLE = require("../lib/zwack-ble-sensor");
@@ -707,6 +729,10 @@ if (containsHR) {
 }
 if (containsFTMSControl) {
   log("FTMS Control Point {green-fg}enabled{/green-fg}");
+}
+if (containsFTMSTreadmill || enabledServices.includes("inclination-range")) {
+  const range = config.inclineRange();
+  log(`FTMS Supported Inclination Range: {bold}${range.min}% to ${range.max}%{/bold}`);
 }
 
 // Periodic refresh of values display
