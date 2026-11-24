@@ -136,6 +136,8 @@ let notificationInterval = 1000;
 let hrUpdateInterval = 5000;
 let watts = power;
 let hrNoise = 0;
+// The grade an app last set through Indoor Bike Simulation Parameters (null until one does)
+let simulationGrade = null;
 
 let prevCadTime = 0;
 let prevCadInt = 0;
@@ -287,6 +289,7 @@ function renderValues() {
       `  {bold}Cycling:{/bold}   Power: {yellow-fg}${power}{/yellow-fg} W` +
         `   Cadence: {yellow-fg}${cadence}{/yellow-fg} rpm` +
         `   Speed: {yellow-fg}${powerMeterSpeed}{/yellow-fg} km/h` +
+        (simulationGrade !== null ? `   Grade: {yellow-fg}${simulationGrade}{/yellow-fg}%` : "") +
         (paused ? "  {red-fg}[PAUSED]{/red-fg}" : "")
     );
   }
@@ -496,6 +499,13 @@ zwackBLE.on('ftms-target', (target) => {
     case 'inclination':
       runningIncline = target.value;
       log(`{cyan-fg}FTMS Control:{/cyan-fg} Target Inclination set to {bold}${target.value}%{/bold}`);
+      break;
+    case 'simulation':
+      simulationGrade = target.value;
+      log(
+        `{cyan-fg}FTMS Control:{/cyan-fg} Simulation grade set to {bold}${target.value}%{/bold}` +
+          ` (wind ${target.windSpeed} m/s, crr ${target.crr}, cw ${target.cw} kg/m)`
+      );
       break;
   }
   refreshScreen();
