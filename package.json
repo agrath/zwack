@@ -14,10 +14,8 @@
   "bugs": {
     "url": "https://github.com/agrath/zwack/issues"
   },
-  "bundleDependencies": [],
   "dependencies": {
-    "@abandonware/bleno": "^0.6.1",
-    "@abandonware/bluetooth-hci-socket": "^0.5.3-12",
+    "@stoprocent/bleno": "^0.13.1",
     "blessed": "^0.1.81",
     "debug": "4.4.0",
     "minimist": "^1.2.8",

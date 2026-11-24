@@ -201,13 +201,11 @@ Press `x` or `q` to exit Zwack.
     
 # Requirements
 
-Requires NodeJS, and should run in all Bleno (the base BLE module) supported platforms, which are Mac, Windows or Raspberry Pi. 
+Requires NodeJS (14 or later). BLE comes from [@stoprocent/bleno](https://github.com/stoprocent/bleno), which ships prebuilt bindings for Linux (including the Raspberry Pi), macOS and Windows (WinRT), so there's nothing to compile. It replaced `@abandonware/bleno`, whose HCI socket bindings fail with EINVAL on Node 20 and later.
 
 Zwack cannot run on the same computer as the fitness or virtual indoor bike app, you'll need to run them on different systems.
 
-If you have trouble getting BLE to work on MacOS, you can try to install bleno from [abandonware](https://github.com/abandonware/bleno) using the command
-
-	npm install bleno@npm:@abandonware/bleno
+If BLE doesn't start, run with `DEBUG=ble` to see bleno's state changes, and on Linux check the adapter is up (`hciconfig hci0`) and node has the `cap_net_raw` capability (see above).
 
 ## Help Needed
 
