@@ -3,6 +3,7 @@
 Simulate/Implement a Bluetooth Low Energy sensor that can send:
 
   * Cycling Power and Cadence (CSP Bluetooth profile)
+  * Cycling Speed and Cadence (CSC Bluetooth profile)
   * Running Speed and Cadence (RSC Bluetooth profile)
   * Cycling Power and Cadence (FTMS Bluetooth profile - partial support)
   * Running Speed (FTMS Bluetooth profile - partial support)
@@ -12,6 +13,7 @@ Simulate/Implement a Bluetooth Low Energy sensor that can send:
 Zwack has many possible uses, here are some examples:
 
   * Simulate an indoor bike trainer (turbo) generating cyclist power,cadence & speed data to test virtual indoor bike apps. 
+  * Simulate a bike's speed and/or cadence sensor to test apps that pair a separate speed or cadence sensor.
   * Simulate a runner's speed and pace to test virtual indoor run apps.
   * Simulate a rower's stroke rate (and computed metrics) to test virtual indoor row apps 
   * Integrate a common treadmill with Zwift, sending data from the treadmill to the Zwift game via bluetooth
@@ -152,6 +154,7 @@ Press `x` or `q` to exit Zwack.
   | ftms-row | FTMS Rower Data (0x2AD1) |
   | ftms-control | FTMS Control Point (0x2AD9) and Machine Status (0x2ADA) |
   | csp | Cycling Power Service |
+  | csc | Cycling Speed and Cadence Service (0x1816): speed and cadence, or only one with `speed` or `cadence` |
   | rsc | Running Speed and Cadence Service |
   | power | CSP with Power data |
   | cadence | CSP with Cadence data (combine with `power`) |
@@ -159,6 +162,20 @@ Press `x` or `q` to exit Zwack.
   | heartrate | Heart Rate service with BPM data (and battery at 75%) |
   | metric | Use metric units for running speed (km/h instead of mph) |
   | inclination-range | Publish the FTMS Supported Inclination Range (0x2AD5) on a bike or rower too (a treadmill always does) |
+
+  ## Cycling Speed and Cadence
+
+  `csc` simulates a speed and cadence sensor (0x1816): cumulative wheel and crank revolutions with the
+  time of the last of each, counted from the cycling speed (`s`/`S`) and cadence (`c`/`C`) the way a real
+  sensor counts them, on a 2096 mm wheel. List only `speed` or only `cadence` with it for a speed-only or
+  cadence-only sensor:
+
+  ```
+  npm run simulator -- --enabled csc heartrate
+  npm run simulator -- --enabled csc cadence
+  ```
+
+  The SC Control Point (setting the cumulative wheel revolutions) isn't simulated.
 
   ## Supported Inclination Range
 

@@ -76,7 +76,7 @@ if (enabledServices.length === 0) {
     "  npm run simulator -- --preset bike,limit  (a bike that publishes its grade range)\n" +
     "  npm run simulator -- --variable=ftms-bike --variable=heartrate  (legacy)\n\n" +
     "Presets: " + Object.keys(presets).join(", ") + "\n" +
-    "Services: ftms-bike, ftms-treadmill, ftms-row, ftms-control, csp, rsc,\n" +
+    "Services: ftms-bike, ftms-treadmill, ftms-row, ftms-control, csp, csc, rsc,\n" +
     "          power, cadence, speed, heartrate, metric, inclination-range\n" +
     "Options:  --incline-min=<pct> --incline-max=<pct>  (the Supported Inclination Range)"
   );
@@ -95,6 +95,7 @@ let containsFTMSRow = enabledServices.includes("ftms-row");
 let containsFTMSControl = enabledServices.includes("ftms-control");
 let containsRSC = enabledServices.includes("rsc");
 let containsCSP = enabledServices.includes("csp");
+let containsCSC = enabledServices.includes("csc");
 let containsSPD = enabledServices.includes("speed");
 let containsPWR = enabledServices.includes("power");
 let containsCAD = enabledServices.includes("cadence");
@@ -244,6 +245,7 @@ function renderServices() {
       svc("FTMS Rower", containsFTMSRow),
       svc("FTMS Control", containsFTMSControl),
       svc("CSP (Cycling Power)", containsCSP),
+      svc("CSC (Speed/Cadence)", containsCSC),
       svc("RSC (Run Speed/Cadence)", containsRSC),
       svc("Heart Rate", containsHR),
       "",
@@ -280,7 +282,7 @@ function renderShortcuts() {
 function renderValues() {
   const lines = [];
 
-  if (containsFTMSBike || containsCSP) {
+  if (containsFTMSBike || containsCSP || containsCSC) {
     lines.push(
       `  {bold}Cycling:{/bold}   Power: {yellow-fg}${power}{/yellow-fg} W` +
         `   Cadence: {yellow-fg}${cadence}{/yellow-fg} rpm` +
@@ -638,6 +640,56 @@ var notifyCPCS = function () {
   setTimeout(notifyCPCS, notificationInterval);
 };
 
+// Cycling Speed and Cadence: cumulative wheel and crank revolutions and the time of the last of each,
+// counted from the speed and cadence (the cadence with its noise) the way a sensor counts them. Speed
+// unless only cadence is listed, cadence unless only speed is.
+const cscWheel = containsSPD || !containsCAD;
+const cscCrank = containsCAD || !containsSPD;
+const cscStart = Date.now();
+let cscLast = cscStart;
+const cscWheelCounter = { revs: 0, fraction: 0, eventTime: 0 };
+const cscCrankCounter = { revs: 0, fraction: 0, eventTime: 0 };
+
+// Adds the revolutions turned in dt seconds; the event time moves to the last whole one. Stopped, the
+// count and the event time hold, as a sensor's do.
+function countRevolutions(counter, revsPerSecond, dt, now) {
+  if (revsPerSecond <= 0) return;
+  counter.fraction += revsPerSecond * dt;
+  const whole = Math.floor(counter.fraction);
+  if (whole > 0) {
+    counter.revs += whole;
+    counter.fraction -= whole;
+    counter.eventTime = now - counter.fraction / revsPerSecond;
+  }
+}
+
+let notifyCSC = function () {
+  const nowMs = Date.now();
+  const dt = (nowMs - cscLast) / 1000;
+  const now = (nowMs - cscStart) / 1000;
+  cscLast = nowMs;
+
+  const event = {};
+  if (cscWheel) {
+    // km/h to wheel revolutions a second
+    countRevolutions(cscWheelCounter, powerMeterSpeed / 3.6 / (wheel_circumference / 1000), dt, now);
+    event.wheel_revs = cscWheelCounter.revs;
+    event.wheel_event_time = cscWheelCounter.eventTime;
+  }
+  if (cscCrank) {
+    countRevolutions(cscCrankCounter, withNoise(cadence, cadRandomness) / 60, dt, now);
+    event.crank_revs = cscCrankCounter.revs;
+    event.crank_event_time = cscCrankCounter.eventTime;
+  }
+
+  try {
+    zwackBLE.notifyCSC(event);
+  } catch (e) {
+    log(`{red-fg}CSC error: ${e}{/red-fg}`);
+  }
+  setTimeout(notifyCSC, notificationInterval);
+};
+
 let prepareRunningData = function () {
   this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
   this.notifyRunningCadence =
@@ -730,6 +782,10 @@ if (containsCSP && containsPWR && containsCAD && containsSPD) {
 if (containsFTMSBike) {
   log("Starting FTMS Bike — power + speed");
   notifyBikeFTMS();
+}
+if (containsCSC) {
+  log(`Starting CSC — ${[cscWheel && "speed", cscCrank && "cadence"].filter(Boolean).join(" + ")}`);
+  notifyCSC();
 }
 if (containsFTMSTreadmill || containsRSC) {
   prepareRunningData();
