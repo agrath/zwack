@@ -95,13 +95,16 @@ Updating simulation parameters
       p/P - Decrease/Increase power
       s/S - Decrease/Increase running/cycling speed
 
-      r/R - Decrease/Increase parameter variability
+      r/R - Decrease/Increase power randomness
+      t/T - Decrease/Increase cadence randomness
+      n/N - Decrease/Increase heart rate randomness
+      z   - Noise on/off
       i/I - Decrease/Increase parameter increment
       x/q - Exit
 
 Pressing `c` on your keyboard will decrease the cadence, conversly pressing `C` (upper case) will increase simulated cadence. Same thing for power by pressing `p` or `P`.
  
-The variability parameter will introduce some random variability to the cadence and power values, so they don't remain constant all the time. If you lower the variability to `0` the cadence and power values will remain constant.
+The randomness settings add noise to the power, cadence and heart rate values, so they don't remain constant all the time. The noise is Gaussian and centred on the value you set: the randomness is its spread, so about two thirds of readings fall within ± that much. Lower a randomness to `0`, or press `z` to turn all noise off, and the values stay constant.
 
 There are more keybindings reported in the output log
 

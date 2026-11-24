@@ -116,9 +116,12 @@ if (!metric) {
   runningSpeed = 10; // 10 km/hour or 6:00/km
 }
 let rowStrokeRate = 24; //average is 24-30
+// Noise: each reading is its target plus Gaussian noise with this spread (~68% of readings within
+// ± the spread, centred on the target). z toggles all of it off for steady values.
 let randomness = 5;
 let cadRandomness = 5;
 let hrRandomness = 5;
+let noise = true;
 let sensorName = "Zwack";
 
 let incr = 5;
@@ -265,6 +268,7 @@ function renderShortcuts() {
         "  {bold}i/I{/bold}  Increment ±1",
       "",
       "  {bold}r/R{/bold}  Power randomness   {bold}t/T{/bold}  Cadence randomness  {bold}n/N{/bold}  HR randomness",
+      "  {bold}z{/bold}    Noise on/off",
       "",
       "  {bold}0{/bold}  Stop   {bold}1{/bold}  Easy   {bold}2{/bold}  Tempo   {bold}3{/bold}  Threshold   {bold}a{/bold}  Pause/Resume",
       "",
@@ -310,7 +314,8 @@ function renderValues() {
   }
 
   lines.push(
-    `  {bold}Settings:{/bold} Randomness: ${randomness}  Cad randomness: ${cadRandomness}  Increment: ${incr}`
+    `  {bold}Settings:{/bold} Noise: ${noise ? "{green-fg}on{/green-fg}" : "{red-fg}off{/red-fg}"}` +
+      `  Randomness: ${randomness}  Cad randomness: ${cadRandomness}  Increment: ${incr}`
   );
 
   valuesBox.setContent(lines.join("\n"));
@@ -378,6 +383,10 @@ screen.on("keypress", (ch, key) => {
     case "n":
       hrRandomness = Math.max(0, hrRandomness + factor);
       log(`HR randomness → ${hrRandomness}`);
+      break;
+    case "z":
+      noise = !noise;
+      log(`Noise → ${noise ? "on" : "off"}`);
       break;
     case "e":
       runningIncline = Math.max(0, Math.min(12, runningIncline + runInclineFactor));
@@ -504,7 +513,7 @@ zwackBLE.on('stateChange', (state) => {
 // ─── Notification functions ────────────────────────────────────────────────
 
 let notifyPowerCSP = function () {
-  watts = power > 0 ? Math.floor(Math.random() * randomness + power) : 0;
+  watts = withNoise(power, randomness);
   try {
     zwackBLE.notifyCSP({ watts: watts });
   } catch (e) {
@@ -514,11 +523,12 @@ let notifyPowerCSP = function () {
 };
 
 let notifyBikeFTMS = function () {
-  watts = power > 0 ? Math.floor(Math.random() * randomness + power) : 0;
-  rpm = cadence > 0 && power > 0 ? Math.floor(Math.random() * cadRandomness + cadence) : 0;
+  watts = withNoise(power, randomness);
+  rpm = power > 0 ? withNoise(cadence, cadRandomness) : 0;
   const heartRate = containsHR && hr > 89 ? hr + hrNoise : undefined;
   try {
-    zwackBLE.notifyFTMS({ watts: watts, cadence: cadence, heart_rate: heartRate });
+    // The noisy cadence (it was sending the target, so FTMS cadence never varied)
+    zwackBLE.notifyFTMS({ watts: watts, cadence: rpm, heart_rate: heartRate });
   } catch (e) {
     log(`{red-fg}FTMS Bike error: ${e}{/red-fg}`);
   }
@@ -547,7 +557,7 @@ let notifyRowFTMS = function () {
 };
 
 let updateHeartRate = function () {
-  hrNoise = Math.floor(Math.random() * hrRandomness) - hrRandomness / 2;
+  hrNoise = Math.round(gaussianNoise(hrRandomness / 2));
   setTimeout(updateHeartRate, hrUpdateInterval);
 };
 
@@ -563,7 +573,8 @@ let notifyCadenceCSP = function () {
   } catch (e) {
     log(`{red-fg}CSP Cadence error: ${e}{/red-fg}`);
   }
-  setTimeout(notifyCadenceCSP, (60 * 1000) / (Math.random() * randomness + cadence));
+  // The next crank revolution: the cadence with its own noise (it was using the power randomness)
+  setTimeout(notifyCadenceCSP, (60 * 1000) / Math.max(1, cadence + gaussianNoise(cadRandomness)));
 };
 
 // Simulate Cycling Power - Broadcasting Power and Cadence & Speed
@@ -576,7 +587,7 @@ var notifyCPCS = function () {
   var spd_int = Math.round(
     (wheel_circumference * powerMeterSpeedUnit * 60 * 60) / (1000 * 1000 * powerMeterSpeed)
   );
-  watts = power > 0 ? Math.floor(Math.random() * randomness + power) : 0;
+  watts = withNoise(power, randomness);
   var cad_int = Math.round((60 * 1024) / cadence);
   var cad_time = 0;
 
@@ -630,7 +641,8 @@ var notifyCPCS = function () {
 let prepareRunningData = function () {
   this.notifyRunningSpeed = toMetersPerSecond(runningSpeed);
   this.notifyRunningCadence =
-    runningCadence > 0 ? Math.floor((Math.random() - 0.5) * 3) + runningCadence : 0;
+    // uint8 in RSC and FTMS
+    runningCadence > 0 ? Math.min(255, withNoise(runningCadence, 1.5)) : 0;
   this.notifyRunningIncline = runningIncline;
 };
 
@@ -655,6 +667,20 @@ let notifyHeartRate = function () {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
+
+// Gaussian noise with the given spread (standard deviation), via the Box-Muller transform: centred on
+// 0, unlike Math.random(), which only ever added. 0 while noise is off.
+function gaussianNoise(spread) {
+  if (!noise || spread <= 0) return 0;
+  const u = 1 - Math.random(); // (0, 1], so the log is finite
+  const v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v) * spread;
+}
+
+// A reading: the target plus noise, rounded, never below 0 (and 0 when the target is)
+function withNoise(target, spread) {
+  return target > 0 ? Math.max(0, Math.round(target + gaussianNoise(spread))) : 0;
+}
 
 function speedToPace(speed) {
   if (speed === 0) return "00:00";
